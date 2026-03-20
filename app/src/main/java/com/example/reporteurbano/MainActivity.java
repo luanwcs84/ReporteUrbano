@@ -1,4 +1,4 @@
-git branch -m master mainpackage com.example.reporteurbano;
+package com.example.reporteurbano;
 
 import android.os.Bundle;
 
