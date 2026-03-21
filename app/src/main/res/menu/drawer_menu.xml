@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <group android:checkableBehavior="single">
+        <item
+            android:id="@+id/nav_reportes"
+            android:icon="@drawable/ic_logo_app"
+            android:title="Meus Reportes" />
+        <item
+            android:id="@+id/nav_opcoes"
+            android:icon="@android:drawable/ic_menu_preferences"
+            android:title="Opções" />
+        <item
+            android:id="@+id/nav_sair"
+            android:icon="@android:drawable/ic_lock_power_off"
+            android:title="Sair" />
+    </group>
+</menu>
