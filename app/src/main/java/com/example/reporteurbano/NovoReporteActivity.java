@@ -39,14 +39,15 @@ public class NovoReporteActivity extends AppCompatActivity {
     private ImageView imgFotoReporte;
     private FusedLocationProviderClient fusedLocationClient;
     private TextInputEditText editLocal;
+    private Bitmap fotoCapturadaBitmap = null;
 
     private final ActivityResultLauncher<Intent> cameraLauncher = registerForActivityResult(
             new ActivityResultContracts.StartActivityForResult(),
             result -> {
                 if (result.getResultCode() == RESULT_OK && result.getData() != null) {
                     Bundle extras = result.getData().getExtras();
-                    Bitmap imageBitmap = (Bitmap) extras.get("data");
-                    imgFotoReporte.setImageBitmap(imageBitmap);
+                    fotoCapturadaBitmap = (Bitmap) extras.get("data");
+                    imgFotoReporte.setImageBitmap(fotoCapturadaBitmap);
                 }
             }
     );
@@ -68,10 +69,9 @@ public class NovoReporteActivity extends AppCompatActivity {
         TextInputLayout layoutLocal = findViewById(R.id.layoutLocalReporte);
         MaterialButton btnTirarFoto = findViewById(R.id.btnTirarFoto);
         MaterialToolbar toolbar = findViewById(R.id.toolbarNovoReporte);
+        toolbar.setNavigationOnClickListener(v -> finish());
 
         fusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
-
-        toolbar.setNavigationOnClickListener(v -> finish());
 
         btnTirarFoto.setOnClickListener(v -> {
             Intent takePictureIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
@@ -81,8 +81,19 @@ public class NovoReporteActivity extends AppCompatActivity {
                 Toast.makeText(this, "Erro: Câmera não encontrada.", Toast.LENGTH_SHORT).show();
             }
         });
-
         layoutLocal.setStartIconOnClickListener(v -> obterLocalizacao());
+
+        imgFotoReporte.setOnClickListener(v -> {
+            if (fotoCapturadaBitmap != null) {
+                android.app.Dialog dialogZoom = new android.app.Dialog(this, android.R.style.Theme_Black_NoTitleBar_Fullscreen);
+                dialogZoom.setContentView(R.layout.dialog_zoom_imagem);
+
+                com.github.chrisbanes.photoview.PhotoView photoViewZoom = dialogZoom.findViewById(R.id.photoViewZoom);
+                photoViewZoom.setImageBitmap(fotoCapturadaBitmap);
+
+                dialogZoom.show();
+            }
+        });
     }
 
     private void obterLocalizacao() {
