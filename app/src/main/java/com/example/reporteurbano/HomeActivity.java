@@ -86,7 +86,6 @@ public class HomeActivity extends AppCompatActivity {
     protected void onResume() {
         super.onResume();
         android.widget.LinearLayout layoutEstadoVazio = findViewById(R.id.layoutEstadoVazio);
-
         DatabaseHelper dbHelper = new DatabaseHelper(this);
 
         if (!dbHelper.buscarTodosReportes().isEmpty()) {
