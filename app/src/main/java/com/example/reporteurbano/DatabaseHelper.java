@@ -56,10 +56,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 
     public List<Reporte> buscarTodosReportes() {
         List<Reporte> lista = new ArrayList<>();
-        // Abre o banco no modo de LEITURA
         SQLiteDatabase db = this.getReadableDatabase();
-
-        // Faz a consulta SQL para pegar tudo (*) da tabela
         Cursor cursor = db.rawQuery("SELECT * FROM " + TABLE_REPORTES, null);
 
         // Se houver pelo menos um resultado, vai passando linha a linha
@@ -71,13 +68,12 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                 String local = cursor.getString(cursor.getColumnIndexOrThrow(COL_LOCAL));
                 String caminhoFoto = cursor.getString(cursor.getColumnIndexOrThrow(COL_CAMINHO_FOTO));
 
-                // Cria o objeto Reporte e adiciona à lista
                 lista.add(new Reporte(id, titulo, descricao, local, caminhoFoto));
             } while (cursor.moveToNext());
         }
 
         cursor.close();
         db.close();
-        return lista; // Devolve a lista cheia
+        return lista;
     }
 }

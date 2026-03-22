@@ -81,4 +81,18 @@ public class HomeActivity extends AppCompatActivity {
             startActivity(intent);
         });
     }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        android.widget.LinearLayout layoutEstadoVazio = findViewById(R.id.layoutEstadoVazio);
+
+        DatabaseHelper dbHelper = new DatabaseHelper(this);
+
+        if (!dbHelper.buscarTodosReportes().isEmpty()) {
+            layoutEstadoVazio.setVisibility(android.view.View.GONE);
+        } else {
+            layoutEstadoVazio.setVisibility(android.view.View.VISIBLE);
+        }
+    }
 }

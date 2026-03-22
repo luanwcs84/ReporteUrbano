@@ -50,6 +50,7 @@
         </com.google.android.material.appbar.MaterialToolbar>
 
         <LinearLayout
+            android:id="@+id/layoutEstadoVazio"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:gravity="center"
@@ -62,31 +63,35 @@
             <TextView
                 android:layout_width="280dp"
                 android:layout_height="wrap_content"
-                android:layout_marginBottom="24dp"
+                android:layout_marginBottom="8dp"
                 android:text="Não há reportes registrados"
                 android:textAlignment="center"
                 android:textColor="?android:attr/textColorPrimary"
                 android:textSize="18sp"
                 android:textStyle="bold" />
 
-            <com.google.android.material.floatingactionbutton.FloatingActionButton
-                android:id="@+id/btnNovoReporte"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginBottom="16dp"
-                android:src="@drawable/ic_add"
-                app:fabSize="normal"
-                app:backgroundTint="?attr/colorTertiary"
-                app:tint="#FFFFFF"
-                android:contentDescription="Criar novo reporte" />
-
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Clique no botão acima para começar"
+                android:text="Clique no botão + para começar"
                 android:textColor="?android:attr/textColorSecondary"
                 android:textSize="14sp" />
         </LinearLayout>
+
+        <com.google.android.material.floatingactionbutton.FloatingActionButton
+            android:id="@+id/btnNovoReporte"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="64dp"
+            android:src="@drawable/ic_add"
+            app:fabSize="normal"
+            app:backgroundTint="?attr/colorTertiary"
+            app:tint="#FFFFFF"
+            android:contentDescription="Criar novo reporte"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent" />
+
     </androidx.constraintlayout.widget.ConstraintLayout>
 
     <com.google.android.material.navigation.NavigationView
