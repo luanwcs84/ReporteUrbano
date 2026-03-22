@@ -12,6 +12,8 @@ import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 
 import com.google.android.material.button.MaterialButton;
+import com.google.android.material.textfield.TextInputEditText;
+import com.google.android.material.textfield.TextInputLayout;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -27,7 +29,13 @@ public class MainActivity extends AppCompatActivity {
             return insets;
         });
 
+        final TextInputLayout layoutUsuario = findViewById(R.id.layoutUsuario);
+        final TextInputLayout layoutSenha = findViewById(R.id.layoutSenha);
+        final TextInputEditText editUsuario = findViewById(R.id.editUsuario);
+        final TextInputEditText editSenha = findViewById(R.id.editSenha);
+        MaterialButton btnLogin = findViewById(R.id.btnLogin);
         TextView btnIrParaCadastro = findViewById(R.id.txtCadastrar);
+
         btnIrParaCadastro.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -36,14 +44,29 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-        MaterialButton btnLogin = findViewById(R.id.btnLogin);
-
         btnLogin.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                //TODO: Verificação de login
-                Intent intent = new Intent(MainActivity.this, HomeActivity.class);
-                startActivity(intent);
+                String usuario = editUsuario.getText().toString().trim();
+                String senha = editSenha.getText().toString().trim();
+
+                layoutUsuario.setError(null);
+                layoutSenha.setError(null);
+
+                if (usuario.isEmpty()) {
+                    layoutUsuario.setError("Preencha o usuário");
+                } else if (senha.isEmpty()) {
+                    layoutSenha.setError("Preencha a senha");
+                } else {
+                    if (usuario.equals("admin") && senha.equals("123456")) {
+                        Intent intent = new Intent(MainActivity.this, HomeActivity.class);
+                        startActivity(intent);
+                        finish();
+                    } else {
+                        layoutUsuario.setError(" ");
+                        layoutSenha.setError("Usuário ou senha incorretos");
+                    }
+                }
             }
         });
     }
