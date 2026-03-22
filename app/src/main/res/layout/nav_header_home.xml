@@ -16,8 +16,7 @@
             android:id="@+id/viewAvatarBg"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:background="@android:drawable/btn_default_small"
-            android:backgroundTint="@color/avatar_teal" />
+            android:background="@drawable/bg_circle_avatar" />
 
         <TextView
             android:id="@+id/txtLetraAvatar"
