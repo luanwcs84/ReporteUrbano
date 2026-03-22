@@ -6,6 +6,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:fillViewport="true"
+    android:background="?android:attr/windowBackground"
     tools:context=".MainActivity">
 
     <androidx.constraintlayout.widget.ConstraintLayout
@@ -22,7 +23,7 @@
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent"
-            app:tint="@android:color/holo_purple" />
+            app:tint="?attr/colorPrimary" />
 
         <com.google.android.material.textfield.TextInputLayout
             android:id="@+id/layoutUsuario"
@@ -63,7 +64,7 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="8dp"
             android:text="Esqueci a senha"
-            android:textColor="@android:color/holo_purple"
+            android:textColor="?attr/colorPrimary"
             android:textStyle="bold"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintTop_toBottomOf="@id/layoutSenha" />
@@ -74,6 +75,7 @@
             android:layout_height="60dp"
             android:layout_marginTop="32dp"
             android:text="Login"
+            app:backgroundTint="?attr/colorPrimary"
             app:layout_constraintTop_toBottomOf="@id/txtEsqueciSenha" />
 
         <LinearLayout
@@ -90,7 +92,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="Ainda não tem conta? "
-                android:textColor="@android:color/black" />
+                android:textColor="?android:attr/textColorPrimary" />
 
             <TextView
                 android:id="@+id/txtCadastrar"
@@ -98,7 +100,7 @@
                 android:layout_height="wrap_content"
                 android:padding="4dp"
                 android:text="Cadastrar-se"
-                android:textColor="@color/blue_highlight"
+                android:textColor="?attr/colorSecondary"
                 android:textStyle="bold" />
 
         </LinearLayout>
