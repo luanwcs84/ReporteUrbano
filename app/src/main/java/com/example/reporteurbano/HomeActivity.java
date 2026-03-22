@@ -65,7 +65,10 @@ public class HomeActivity extends AppCompatActivity {
 
         navigationView.setNavigationItemSelectedListener(item -> {
             int id = item.getItemId();
-            if (id == R.id.nav_sair) {
+            if (id == R.id.nav_reportes) {
+                Intent intent = new Intent(HomeActivity.this, MeusReportesActivity.class);
+                startActivity(intent);
+            } else if (id == R.id.nav_sair) {
                 finish();
             }
             drawerLayout.close();
