@@ -58,7 +58,7 @@ public class MainActivity extends AppCompatActivity {
                 } else if (senha.isEmpty()) {
                     layoutSenha.setError("Preencha a senha");
                 } else {
-                    if (usuario.equals("admin") && senha.equals("123456")) {
+                    if (usuario.equals("admin") && senha.equals("1234")) {
                         Intent intent = new Intent(MainActivity.this, HomeActivity.class);
                         startActivity(intent);
                         finish();

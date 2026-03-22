@@ -2,6 +2,8 @@ package com.example.reporteurbano;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.view.View;
+import android.widget.TextView;
 
 import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.AppCompatActivity;
@@ -33,11 +35,31 @@ public class HomeActivity extends AppCompatActivity {
 
         setSupportActionBar(toolbar);
 
+        ViewCompat.setOnApplyWindowInsetsListener(toolbar, (v, insets) -> {
+            Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
+            v.setPadding(0, systemBars.top, 0, 0);
+            return insets;
+        });
+
         ViewCompat.setOnApplyWindowInsetsListener(drawerLayout, (v, insets) -> {
             Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
             v.setPadding(systemBars.left, 0, systemBars.right, systemBars.bottom);
             return insets;
         });
+
+        View headerView = navigationView.getHeaderView(0);
+        TextView txtLetraAvatarNav = headerView.findViewById(R.id.txtLetraAvatar);
+        TextView txtNomeUsuarioNav = headerView.findViewById(R.id.txtNomeUsuarioNav);
+        TextView txtLetraAvatarToolbar = findViewById(R.id.txtLetraAvatarToolbar);
+
+        String nomeUsuario = "admin";
+
+        if (nomeUsuario != null && !nomeUsuario.isEmpty()) {
+            String primeiraLetra = nomeUsuario.substring(0, 1).toUpperCase();
+            txtLetraAvatarNav.setText(primeiraLetra);
+            txtNomeUsuarioNav.setText(nomeUsuario);
+            txtLetraAvatarToolbar.setText(primeiraLetra);
+        }
 
         toolbar.setNavigationOnClickListener(v -> drawerLayout.open());
 
