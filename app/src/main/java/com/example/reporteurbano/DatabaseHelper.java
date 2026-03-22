@@ -76,4 +76,11 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         db.close();
         return lista;
     }
+
+    public void deletarReporte(int id) {
+        SQLiteDatabase db = this.getWritableDatabase();
+        // Apaga na tabela onde a coluna ID for igual
+        db.delete(TABLE_REPORTES, COL_ID + " = ?", new String[]{String.valueOf(id)});
+        db.close();
+    }
 }

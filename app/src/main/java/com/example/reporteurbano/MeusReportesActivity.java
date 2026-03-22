@@ -38,7 +38,7 @@ public class MeusReportesActivity extends AppCompatActivity {
         RecyclerView recycler = findViewById(R.id.recyclerMeusReportes);
         recycler.setLayoutManager(new LinearLayoutManager(this));
 
-        ReporteAdapter adapter = new ReporteAdapter(listaDeReportes);
+        ReporteAdapter adapter = new ReporteAdapter(this, listaDeReportes);
         recycler.setAdapter(adapter);
     }
 }
