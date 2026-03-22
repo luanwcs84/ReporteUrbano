@@ -52,14 +52,15 @@ public class HomeActivity extends AppCompatActivity {
         TextView txtNomeUsuarioNav = headerView.findViewById(R.id.txtNomeUsuarioNav);
         TextView txtLetraAvatarToolbar = findViewById(R.id.txtLetraAvatarToolbar);
 
-        String nomeUsuario = "admin";
-
-        if (nomeUsuario != null && !nomeUsuario.isEmpty()) {
-            String primeiraLetra = nomeUsuario.substring(0, 1).toUpperCase();
-            txtLetraAvatarNav.setText(primeiraLetra);
-            txtNomeUsuarioNav.setText(nomeUsuario);
-            txtLetraAvatarToolbar.setText(primeiraLetra);
+        String emailUsuario = getIntent().getStringExtra("USER_EMAIL");
+        if (emailUsuario == null || emailUsuario.isEmpty()) {
+            emailUsuario = "admin@gmail.com";
         }
+
+        String primeiraLetra = emailUsuario.substring(0, 1).toUpperCase();
+        txtLetraAvatarNav.setText(primeiraLetra);
+        txtNomeUsuarioNav.setText(emailUsuario);
+        txtLetraAvatarToolbar.setText(primeiraLetra);
 
         toolbar.setNavigationOnClickListener(v -> drawerLayout.open());
 

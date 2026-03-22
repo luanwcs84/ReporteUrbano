@@ -29,9 +29,9 @@ public class MainActivity extends AppCompatActivity {
             return insets;
         });
 
-        final TextInputLayout layoutUsuario = findViewById(R.id.layoutUsuario);
+        final TextInputLayout layoutEmail = findViewById(R.id.layoutEmail);
         final TextInputLayout layoutSenha = findViewById(R.id.layoutSenha);
-        final TextInputEditText editUsuario = findViewById(R.id.editUsuario);
+        final TextInputEditText editEmail = findViewById(R.id.editEmail);
         final TextInputEditText editSenha = findViewById(R.id.editSenha);
         MaterialButton btnLogin = findViewById(R.id.btnLogin);
         TextView btnIrParaCadastro = findViewById(R.id.txtCadastrar);
@@ -47,24 +47,25 @@ public class MainActivity extends AppCompatActivity {
         btnLogin.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                String usuario = editUsuario.getText().toString().trim();
+                String email = editEmail.getText().toString().trim();
                 String senha = editSenha.getText().toString().trim();
 
-                layoutUsuario.setError(null);
+                layoutEmail.setError(null);
                 layoutSenha.setError(null);
 
-                if (usuario.isEmpty()) {
-                    layoutUsuario.setError("Preencha o usuário");
+                if (email.isEmpty()) {
+                    layoutEmail.setError("Preencha o e-mail");
                 } else if (senha.isEmpty()) {
                     layoutSenha.setError("Preencha a senha");
                 } else {
-                    if (usuario.equals("admin") && senha.equals("1234")) {
+                    if (email.equals("admin@gmail.com") && senha.equals("1234")) {
                         Intent intent = new Intent(MainActivity.this, HomeActivity.class);
+                        intent.putExtra("USER_EMAIL", email);
                         startActivity(intent);
                         finish();
                     } else {
-                        layoutUsuario.setError(" ");
-                        layoutSenha.setError("Usuário ou senha incorretos");
+                        layoutEmail.setError(" ");
+                        layoutSenha.setError("E-mail ou senha incorretos");
                     }
                 }
             }
