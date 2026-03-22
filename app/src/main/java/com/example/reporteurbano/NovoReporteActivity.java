@@ -31,6 +31,8 @@ import com.google.android.material.button.MaterialButton;
 import com.google.android.material.textfield.TextInputEditText;
 import com.google.android.material.textfield.TextInputLayout;
 
+import java.io.File;
+import java.io.FileOutputStream;
 import java.util.List;
 import java.util.Locale;
 
@@ -38,8 +40,11 @@ public class NovoReporteActivity extends AppCompatActivity {
 
     private ImageView imgFotoReporte;
     private FusedLocationProviderClient fusedLocationClient;
+    private TextInputEditText editTitulo;
+    private TextInputEditText editDescricao;
     private TextInputEditText editLocal;
     private Bitmap fotoCapturadaBitmap = null;
+    private DatabaseHelper dbHelper;
 
     private final ActivityResultLauncher<Intent> cameraLauncher = registerForActivityResult(
             new ActivityResultContracts.StartActivityForResult(),
@@ -65,13 +70,19 @@ public class NovoReporteActivity extends AppCompatActivity {
         });
 
         imgFotoReporte = findViewById(R.id.imgFotoReporte);
+        editTitulo = findViewById(R.id.editTituloReporte);
+        editDescricao = findViewById(R.id.editDescricaoReporte);
         editLocal = findViewById(R.id.editLocalReporte);
+
         TextInputLayout layoutLocal = findViewById(R.id.layoutLocalReporte);
         MaterialButton btnTirarFoto = findViewById(R.id.btnTirarFoto);
+        MaterialButton btnEnviarReporte = findViewById(R.id.btnEnviarReporte);
         MaterialToolbar toolbar = findViewById(R.id.toolbarNovoReporte);
-        toolbar.setNavigationOnClickListener(v -> finish());
 
         fusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
+        dbHelper = new DatabaseHelper(this);
+
+        toolbar.setNavigationOnClickListener(v -> finish());
 
         btnTirarFoto.setOnClickListener(v -> {
             Intent takePictureIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
@@ -81,19 +92,75 @@ public class NovoReporteActivity extends AppCompatActivity {
                 Toast.makeText(this, "Erro: Câmera não encontrada.", Toast.LENGTH_SHORT).show();
             }
         });
+
         layoutLocal.setStartIconOnClickListener(v -> obterLocalizacao());
 
         imgFotoReporte.setOnClickListener(v -> {
             if (fotoCapturadaBitmap != null) {
                 android.app.Dialog dialogZoom = new android.app.Dialog(this, android.R.style.Theme_Black_NoTitleBar_Fullscreen);
                 dialogZoom.setContentView(R.layout.dialog_zoom_imagem);
-
                 com.github.chrisbanes.photoview.PhotoView photoViewZoom = dialogZoom.findViewById(R.id.photoViewZoom);
                 photoViewZoom.setImageBitmap(fotoCapturadaBitmap);
-
                 dialogZoom.show();
             }
         });
+
+        btnEnviarReporte.setOnClickListener(v -> salvarReporteCompleto());
+
+    }
+
+    private void salvarReporteCompleto() {
+        String titulo = editTitulo.getText().toString().trim();
+        String descricao = editDescricao.getText().toString().trim();
+        String local = editLocal.getText().toString().trim();
+
+        if (titulo.isEmpty() || descricao.isEmpty() || local.isEmpty() || fotoCapturadaBitmap == null) {
+            Toast.makeText(this, "Por favor, preencha todos os campos e adicione uma foto!", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        if (titulo.matches(".*\\d.*")) {
+            Toast.makeText(this, "O título não pode conter números. Use apenas letras!", Toast.LENGTH_SHORT).show();
+            editTitulo.requestFocus();
+            return;
+        }
+
+        String caminhoDaFotoSalva = salvarImagemNaMemoria(fotoCapturadaBitmap);
+        if (caminhoDaFotoSalva == null) {
+            Toast.makeText(this, "Erro ao guardar a imagem no telemóvel.", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        long idSalvo = dbHelper.inserirReporte(titulo, descricao, local, caminhoDaFotoSalva);
+        if (idSalvo != -1) {
+            Toast.makeText(this, "✅ Caso registrado com sucesso!", Toast.LENGTH_LONG).show();
+            finish();
+        } else {
+            Toast.makeText(this, "❌ Erro ao registrar o caso.", Toast.LENGTH_LONG).show();
+        }
+    }
+
+    private String salvarImagemNaMemoria(Bitmap bitmap) {
+        try {
+            // Cria uma pasta chamada "fotos_reportes" dentro dos arquivos ocultos do app
+            File diretorio = new File(getFilesDir(), "fotos_reportes");
+            if (!diretorio.exists()) {
+                diretorio.mkdirs();
+            }
+
+            String nomeArquivo = "reporte_" + System.currentTimeMillis() + ".jpg";
+            File arquivoImagem = new File(diretorio, nomeArquivo);
+
+            FileOutputStream fos = new FileOutputStream(arquivoImagem);
+            bitmap.compress(Bitmap.CompressFormat.JPEG, 90, fos);
+            fos.flush();
+            fos.close();
+            return arquivoImagem.getAbsolutePath();
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            return null;
+        }
     }
 
     private void obterLocalizacao() {
@@ -101,7 +168,6 @@ public class NovoReporteActivity extends AppCompatActivity {
             ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, 100);
             return;
         }
-
         fusedLocationClient.getCurrentLocation(Priority.PRIORITY_HIGH_ACCURACY, null)
                 .addOnSuccessListener(this, location -> {
                     if (location != null) {
