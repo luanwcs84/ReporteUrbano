@@ -4,6 +4,9 @@ import android.content.ContentValues;
 import android.content.Context;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
+import android.database.Cursor;
+import java.util.ArrayList;
+import java.util.List;
 
 public class DatabaseHelper extends SQLiteOpenHelper {
 
@@ -49,5 +52,32 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         long idGerado = db.insert(TABLE_REPORTES, null, values);
         db.close();
         return idGerado;
+    }
+
+    public List<Reporte> buscarTodosReportes() {
+        List<Reporte> lista = new ArrayList<>();
+        // Abre o banco no modo de LEITURA
+        SQLiteDatabase db = this.getReadableDatabase();
+
+        // Faz a consulta SQL para pegar tudo (*) da tabela
+        Cursor cursor = db.rawQuery("SELECT * FROM " + TABLE_REPORTES, null);
+
+        // Se houver pelo menos um resultado, vai passando linha a linha
+        if (cursor.moveToFirst()) {
+            do {
+                int id = cursor.getInt(cursor.getColumnIndexOrThrow(COL_ID));
+                String titulo = cursor.getString(cursor.getColumnIndexOrThrow(COL_TITULO));
+                String descricao = cursor.getString(cursor.getColumnIndexOrThrow(COL_DESCRICAO));
+                String local = cursor.getString(cursor.getColumnIndexOrThrow(COL_LOCAL));
+                String caminhoFoto = cursor.getString(cursor.getColumnIndexOrThrow(COL_CAMINHO_FOTO));
+
+                // Cria o objeto Reporte e adiciona à lista
+                lista.add(new Reporte(id, titulo, descricao, local, caminhoFoto));
+            } while (cursor.moveToNext());
+        }
+
+        cursor.close();
+        db.close();
+        return lista; // Devolve a lista cheia
     }
 }
