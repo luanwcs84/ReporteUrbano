@@ -12,16 +12,16 @@
     <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:background="#F5F5F5">
+        android:background="?android:attr/windowBackground">
 
         <com.google.android.material.appbar.MaterialToolbar
             android:id="@+id/toolbarHome"
             android:layout_width="match_parent"
             android:layout_height="?attr/actionBarSize"
-            android:background="@android:color/holo_purple"
+            android:background="?attr/colorPrimary"
             app:navigationIcon="@drawable/ic_menu_hamburger"
             app:title="Reporte Urbano"
-            app:titleTextColor="@android:color/white"
+            app:titleTextColor="#FFFFFF"
             app:layout_constraintTop_toTopOf="parent" />
 
         <LinearLayout
@@ -40,7 +40,7 @@
                 android:layout_marginBottom="24dp"
                 android:text="Não há reportes registrados"
                 android:textAlignment="center"
-                android:textColor="#212121"
+                android:textColor="?android:attr/textColorPrimary"
                 android:textSize="18sp"
                 android:textStyle="bold" />
 
@@ -51,15 +51,15 @@
                 android:layout_marginBottom="16dp"
                 android:src="@drawable/ic_add"
                 app:fabSize="normal"
-                app:backgroundTint="@color/blue_highlight"
-                app:tint="@android:color/white"
+                app:backgroundTint="?attr/colorSecondary"
+                app:tint="#FFFFFF"
                 android:contentDescription="Criar novo reporte" />
 
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="Clique no botão acima para começar"
-                android:textColor="#757575"
+                android:textColor="?android:attr/textColorSecondary"
                 android:textSize="14sp" />
         </LinearLayout>
     </androidx.constraintlayout.widget.ConstraintLayout>
@@ -69,7 +69,7 @@
         android:layout_width="wrap_content"
         android:layout_height="match_parent"
         android:layout_gravity="start"
-        app:headerLayout="@android:layout/simple_list_item_1"
-        app:menu="@menu/drawer_menu" />
+        app:menu="@menu/drawer_menu"
+        android:background="?android:attr/windowBackground" />
 
 </androidx.drawerlayout.widget.DrawerLayout>

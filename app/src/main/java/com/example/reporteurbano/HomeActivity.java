@@ -2,7 +2,6 @@ package com.example.reporteurbano;
 
 import android.content.Intent;
 import android.os.Bundle;
-import android.widget.Toast;
 
 import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.AppCompatActivity;
@@ -31,6 +30,7 @@ public class HomeActivity extends AppCompatActivity {
         navigationView = findViewById(R.id.nav_view);
         toolbar = findViewById(R.id.toolbarHome);
         btnNovoReporte = findViewById(R.id.btnNovoReporte);
+
         setSupportActionBar(toolbar);
 
         ViewCompat.setOnApplyWindowInsetsListener(drawerLayout, (v, insets) -> {
@@ -39,9 +39,7 @@ public class HomeActivity extends AppCompatActivity {
             return insets;
         });
 
-        toolbar.setNavigationOnClickListener(v -> {
-            drawerLayout.open();
-        });
+        toolbar.setNavigationOnClickListener(v -> drawerLayout.open());
 
         navigationView.setNavigationItemSelectedListener(item -> {
             int id = item.getItemId();
@@ -53,7 +51,6 @@ public class HomeActivity extends AppCompatActivity {
         });
 
         btnNovoReporte.setOnClickListener(v -> {
-            // Cria a intenção de ir da Home para o NovoReporte
             Intent intent = new Intent(HomeActivity.this, NovoReporteActivity.class);
             startActivity(intent);
         });
