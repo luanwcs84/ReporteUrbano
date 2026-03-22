@@ -2,6 +2,7 @@
     <style name="Base.Theme.ReporteUrbano" parent="Theme.Material3.DayNight.NoActionBar">
         <item name="colorPrimary">@color/violet_brand</item>
         <item name="colorSecondary">@color/purple_medium</item>
+        <item name="colorTertiary">@color/blue_highlight</item>
         <item name="android:windowBackground">@color/white</item>
         <item name="android:statusBarColor">@android:color/transparent</item>
     </style>

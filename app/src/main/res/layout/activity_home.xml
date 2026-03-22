@@ -51,7 +51,7 @@
                 android:layout_marginBottom="16dp"
                 android:src="@drawable/ic_add"
                 app:fabSize="normal"
-                app:backgroundTint="?attr/colorSecondary"
+                app:backgroundTint="?attr/colorTertiary"
                 app:tint="#FFFFFF"
                 android:contentDescription="Criar novo reporte" />
 
