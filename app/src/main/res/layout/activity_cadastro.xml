@@ -6,6 +6,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:fillViewport="true"
+    android:background="?android:attr/windowBackground"
     tools:context=".CadastroActivity">
 
     <androidx.constraintlayout.widget.ConstraintLayout
@@ -21,7 +22,7 @@
             android:text="Criar Nova Conta"
             android:textSize="24sp"
             android:textStyle="bold"
-            android:textColor="@android:color/black"
+            android:textColor="?android:attr/textColorPrimary"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent" />
@@ -44,6 +45,22 @@
         </com.google.android.material.textfield.TextInputLayout>
 
         <com.google.android.material.textfield.TextInputLayout
+            android:id="@+id/layoutEmailCad"
+            style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:hint="E-mail"
+            app:layout_constraintTop_toBottomOf="@id/layoutUsuarioCad">
+
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/editEmailCad"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:inputType="textEmailAddress" />
+        </com.google.android.material.textfield.TextInputLayout>
+
+        <com.google.android.material.textfield.TextInputLayout
             android:id="@+id/layoutSenhaCad"
             style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
             android:layout_width="match_parent"
@@ -51,7 +68,7 @@
             android:layout_marginTop="16dp"
             android:hint="Senha"
             app:endIconMode="password_toggle"
-            app:layout_constraintTop_toBottomOf="@id/layoutUsuarioCad">
+            app:layout_constraintTop_toBottomOf="@id/layoutEmailCad">
 
             <com.google.android.material.textfield.TextInputEditText
                 android:id="@+id/editSenhaCad"
@@ -83,6 +100,7 @@
             android:layout_height="60dp"
             android:layout_marginTop="32dp"
             android:text="Finalizar Cadastro"
+            app:backgroundTint="?attr/colorPrimary"
             app:layout_constraintTop_toBottomOf="@id/layoutConfirmarSenhaCad" />
 
         <TextView
@@ -92,7 +110,7 @@
             android:layout_marginTop="16dp"
             android:padding="8dp"
             android:text="Já tem uma conta? Faça Login"
-            android:textColor="@color/blue_highlight"
+            android:textColor="?attr/colorSecondary"
             android:textStyle="bold"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
