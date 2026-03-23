@@ -6,6 +6,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:fillViewport="true"
+    android:background="?android:attr/windowBackground"
     tools:context=".NovoReporteActivity">
 
     <androidx.constraintlayout.widget.ConstraintLayout
@@ -17,9 +18,9 @@
             android:id="@+id/toolbarNovoReporte"
             android:layout_width="match_parent"
             android:layout_height="?attr/actionBarSize"
-            android:background="@android:color/holo_purple"
+            android:background="?attr/colorPrimary"
             app:title="Novo Reporte"
-            app:titleTextColor="@android:color/white"
+            app:titleTextColor="#FFFFFF"
             app:navigationIcon="@android:drawable/ic_menu_revert"
             app:layout_constraintTop_toTopOf="parent" />
 
@@ -28,7 +29,7 @@
             android:layout_width="match_parent"
             android:layout_height="200dp"
             android:layout_margin="16dp"
-            android:background="#E0E0E0"
+            android:background="?attr/colorOnSurfaceVariant"
             android:scaleType="centerCrop"
             app:layout_constraintTop_toBottomOf="@id/toolbarNovoReporte" />
 
@@ -58,6 +59,7 @@
                 android:id="@+id/editTituloReporte"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:textColor="?android:attr/textColorPrimary"
                 android:inputType="textCapSentences" />
         </com.google.android.material.textfield.TextInputLayout>
 
@@ -76,6 +78,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:gravity="top|start"
+                android:textColor="?android:attr/textColorPrimary"
                 android:inputType="textMultiLine"
                 android:lines="4" />
         </com.google.android.material.textfield.TextInputLayout>
@@ -95,6 +98,7 @@
                 android:id="@+id/editLocalReporte"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:textColor="?android:attr/textColorPrimary"
                 android:inputType="textPostalAddress" />
         </com.google.android.material.textfield.TextInputLayout>
 
@@ -105,7 +109,8 @@
             android:layout_marginHorizontal="16dp"
             android:layout_marginTop="32dp"
             android:text="Enviar Reporte"
-            app:backgroundTint="@color/blue_highlight"
+            android:textColor="#FFFFFF"
+            app:backgroundTint="#2196F3"
             app:layout_constraintTop_toBottomOf="@id/layoutLocalReporte" />
 
     </androidx.constraintlayout.widget.ConstraintLayout>
