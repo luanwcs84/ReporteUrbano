@@ -4,6 +4,7 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.AppCompatActivity;
@@ -17,11 +18,22 @@ import com.google.android.material.textfield.TextInputLayout;
 
 public class MainActivity extends AppCompatActivity {
 
+    private SessionManager sessionManager;
+    private SupabaseAuthService authService;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         EdgeToEdge.enable(this);
         setContentView(R.layout.activity_main);
+
+        sessionManager = new SessionManager(this);
+        authService = new SupabaseAuthService(sessionManager);
+
+        if (sessionManager.isLoggedIn()) {
+            abrirHome(sessionManager.getUserEmail());
+            return;
+        }
 
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main), (v, insets) -> {
             Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
@@ -58,17 +70,37 @@ public class MainActivity extends AppCompatActivity {
                 } else if (senha.isEmpty()) {
                     layoutSenha.setError("Preencha a senha");
                 } else {
-                    if (email.equals("admin@gmail.com") && senha.equals("1234")) {
-                        Intent intent = new Intent(MainActivity.this, HomeActivity.class);
-                        intent.putExtra("USER_EMAIL", email);
-                        startActivity(intent);
-                        finish();
-                    } else {
-                        layoutEmail.setError(" ");
-                        layoutSenha.setError("E-mail ou senha incorretos");
-                    }
+                    final android.app.AlertDialog loadingDialog =
+                            LoadingUtils.createLoadingDialog(MainActivity.this, "Entrando...");
+
+                    authService.signIn(email, senha, new SupabaseCallback<AuthUser>() {
+                        @Override
+                        public void onSuccess(AuthUser result) {
+                            runOnUiThread(() -> {
+                                loadingDialog.dismiss();
+                                abrirHome(result.getEmail());
+                            });
+                        }
+
+                        @Override
+                        public void onError(String errorMessage) {
+                            runOnUiThread(() -> {
+                                loadingDialog.dismiss();
+                                layoutEmail.setError(" ");
+                                layoutSenha.setError(errorMessage);
+                                Toast.makeText(MainActivity.this, errorMessage, Toast.LENGTH_LONG).show();
+                            });
+                        }
+                    });
                 }
             }
         });
+    }
+
+    private void abrirHome(String email) {
+        Intent intent = new Intent(MainActivity.this, HomeActivity.class);
+        intent.putExtra("USER_EMAIL", email);
+        startActivity(intent);
+        finish();
     }
 }

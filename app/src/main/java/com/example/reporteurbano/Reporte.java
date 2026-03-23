@@ -1,23 +1,29 @@
 package com.example.reporteurbano;
 
 public class Reporte {
-    private int id;
-    private String titulo;
-    private String descricao;
-    private String local;
-    private String caminhoFoto;
+    private final String id;
+    private final String titulo;
+    private final String descricao;
+    private final String endereco;
+    private final double latitude;
+    private final double longitude;
+    private final String fotoUrl;
 
-    public Reporte(int id, String titulo, String descricao, String local, String caminhoFoto) {
+    public Reporte(String id, String titulo, String descricao, String endereco, double latitude, double longitude, String fotoUrl) {
         this.id = id;
         this.titulo = titulo;
         this.descricao = descricao;
-        this.local = local;
-        this.caminhoFoto = caminhoFoto;
+        this.endereco = endereco;
+        this.latitude = latitude;
+        this.longitude = longitude;
+        this.fotoUrl = fotoUrl;
     }
 
-    public int getId() { return id; }
+    public String getId() { return id; }
     public String getTitulo() { return titulo; }
     public String getDescricao() { return descricao; }
-    public String getLocal() { return local; }
-    public String getCaminhoFoto() { return caminhoFoto; }
+    public String getEndereco() { return endereco; }
+    public double getLatitude() { return latitude; }
+    public double getLongitude() { return longitude; }
+    public String getFotoUrl() { return fotoUrl; }
 }

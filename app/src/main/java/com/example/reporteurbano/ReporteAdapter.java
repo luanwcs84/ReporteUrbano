@@ -1,8 +1,6 @@
 package com.example.reporteurbano;
 
 import android.content.Context;
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -13,17 +11,24 @@ import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
-import java.io.File;
+import com.bumptech.glide.Glide;
+
+import java.util.ArrayList;
 import java.util.List;
 
 public class ReporteAdapter extends RecyclerView.Adapter<ReporteAdapter.ReporteViewHolder> {
 
-    private Context context;
-    private List<Reporte> listaReportes;
+    private final Context context;
+    private final List<Reporte> listaReportes;
+    private final SupabaseReporteService reporteService;
+    private final SupabaseStorageService storageService;
 
     public ReporteAdapter(Context context, List<Reporte> listaReportes) {
         this.context = context;
-        this.listaReportes = listaReportes;
+        this.listaReportes = new ArrayList<>(listaReportes);
+        SessionManager sessionManager = new SessionManager(context);
+        this.reporteService = new SupabaseReporteService(sessionManager);
+        this.storageService = new SupabaseStorageService(sessionManager);
     }
 
     @NonNull
@@ -38,44 +43,65 @@ public class ReporteAdapter extends RecyclerView.Adapter<ReporteAdapter.ReporteV
         Reporte reporteAtual = listaReportes.get(position);
 
         holder.txtTitulo.setText(reporteAtual.getTitulo());
-        holder.txtLocal.setText(reporteAtual.getLocal());
+        holder.txtLocal.setText(reporteAtual.getEndereco());
 
-        File arquivoFoto = new File(reporteAtual.getCaminhoFoto());
-        if (arquivoFoto.exists()) {
-            Bitmap bitmapFoto = BitmapFactory.decodeFile(arquivoFoto.getAbsolutePath());
-            holder.imgFoto.setImageBitmap(bitmapFoto);
-        }
+        Glide.with(context)
+                .load(reporteAtual.getFotoUrl())
+                .centerCrop()
+                .into(holder.imgFoto);
 
         holder.btnDeletar.setOnClickListener(v -> {
             new android.app.AlertDialog.Builder(context)
-                    .setTitle("Apagar Reporte")
-                    .setMessage("Tem certeza que deseja apagar este reporte? Esta ação não pode ser desfeita.")
+                    .setTitle("Apagar reporte")
+                    .setMessage("Tem certeza que deseja apagar este reporte?")
+                    .setPositiveButton("Sim", (dialog, which) -> apagarReporte(reporteAtual, holder.getBindingAdapterPosition()))
+                    .setNegativeButton("Cancelar", (dialog, which) -> dialog.dismiss())
+                    .show();
+        });
+    }
 
-                    .setPositiveButton("Sim", (dialog, which) -> {
-                        DatabaseHelper dbHelper = new DatabaseHelper(context);
-
-                        dbHelper.deletarReporte(reporteAtual.getId());
-                        if (arquivoFoto.exists()) {
-                            arquivoFoto.delete();
+    private void apagarReporte(Reporte reporteAtual, int adapterPosition) {
+        reporteService.deleteReporte(reporteAtual.getId(), new SupabaseCallback<Void>() {
+            @Override
+            public void onSuccess(Void result) {
+                if (reporteAtual.getFotoUrl() != null && !reporteAtual.getFotoUrl().isEmpty()) {
+                    storageService.deleteImageByPublicUrl(reporteAtual.getFotoUrl(), new SupabaseCallback<Void>() {
+                        @Override
+                        public void onSuccess(Void ignored) {
                         }
 
-                        listaReportes.remove(position);
-                        notifyItemRemoved(position);
-                        notifyItemRangeChanged(position, listaReportes.size());
+                        @Override
+                        public void onError(String errorMessage) {
+                        }
+                    });
+                }
 
-                        Toast.makeText(context, "Reporte apagado!", Toast.LENGTH_SHORT).show();
-                    })
+                ((android.app.Activity) context).runOnUiThread(() -> {
+                    if (adapterPosition >= 0 && adapterPosition < listaReportes.size()) {
+                        listaReportes.remove(adapterPosition);
+                        notifyItemRemoved(adapterPosition);
+                    }
+                    Toast.makeText(context, "Reporte apagado com sucesso.", Toast.LENGTH_SHORT).show();
+                });
+            }
 
-                    .setNegativeButton("Cancelar", (dialog, which) -> {
-                        dialog.dismiss();
-                    })
-                    .show();
+            @Override
+            public void onError(String errorMessage) {
+                ((android.app.Activity) context).runOnUiThread(() ->
+                        Toast.makeText(context, errorMessage, Toast.LENGTH_LONG).show());
+            }
         });
     }
 
     @Override
     public int getItemCount() {
         return listaReportes.size();
+    }
+
+    public void updateData(List<Reporte> novosReportes) {
+        listaReportes.clear();
+        listaReportes.addAll(novosReportes);
+        notifyDataSetChanged();
     }
 
     static class ReporteViewHolder extends RecyclerView.ViewHolder {

@@ -2,15 +2,12 @@ package com.example.reporteurbano;
 
 import android.Manifest;
 import android.content.ActivityNotFoundException;
-import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.location.Address;
 import android.location.Geocoder;
-import android.location.Location;
 import android.os.Bundle;
 import android.provider.MediaStore;
-import android.view.View;
 import android.widget.ImageView;
 import android.widget.Toast;
 
@@ -45,15 +42,19 @@ public class NovoReporteActivity extends AppCompatActivity {
     private TextInputEditText editDescricao;
     private TextInputEditText editLocal;
     private Bitmap fotoCapturadaBitmap = null;
-    private DatabaseHelper dbHelper;
+    private SessionManager sessionManager;
+    private SupabaseReporteService reporteService;
+    private SupabaseStorageService storageService;
 
-    private final ActivityResultLauncher<Intent> cameraLauncher = registerForActivityResult(
+    private final ActivityResultLauncher<android.content.Intent> cameraLauncher = registerForActivityResult(
             new ActivityResultContracts.StartActivityForResult(),
             result -> {
                 if (result.getResultCode() == RESULT_OK && result.getData() != null) {
                     Bundle extras = result.getData().getExtras();
-                    fotoCapturadaBitmap = (Bitmap) extras.get("data");
-                    imgFotoReporte.setImageBitmap(fotoCapturadaBitmap);
+                    if (extras != null) {
+                        fotoCapturadaBitmap = (Bitmap) extras.get("data");
+                        imgFotoReporte.setImageBitmap(fotoCapturadaBitmap);
+                    }
                 }
             }
     );
@@ -63,6 +64,10 @@ public class NovoReporteActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         EdgeToEdge.enable(this);
         setContentView(R.layout.activity_novo_reporte);
+
+        sessionManager = new SessionManager(this);
+        reporteService = new SupabaseReporteService(sessionManager);
+        storageService = new SupabaseStorageService(sessionManager);
 
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main), (v, insets) -> {
             Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
@@ -81,16 +86,15 @@ public class NovoReporteActivity extends AppCompatActivity {
         MaterialToolbar toolbar = findViewById(R.id.toolbarNovoReporte);
 
         fusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
-        dbHelper = new DatabaseHelper(this);
 
         toolbar.setNavigationOnClickListener(v -> finish());
 
         btnTirarFoto.setOnClickListener(v -> {
-            Intent takePictureIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+            android.content.Intent takePictureIntent = new android.content.Intent(MediaStore.ACTION_IMAGE_CAPTURE);
             try {
                 cameraLauncher.launch(takePictureIntent);
             } catch (ActivityNotFoundException e) {
-                Toast.makeText(this, "Erro: Câmera não encontrada.", Toast.LENGTH_SHORT).show();
+                Toast.makeText(this, "Camera nao encontrada.", Toast.LENGTH_SHORT).show();
             }
         });
 
@@ -110,64 +114,91 @@ public class NovoReporteActivity extends AppCompatActivity {
     }
 
     private void salvarReporteCompleto() {
-        String titulo = editTitulo.getText().toString().trim();
-        String descricao = editDescricao.getText().toString().trim();
-        String localTexto = editLocal.getText().toString().trim();
+        String titulo = editTitulo.getText() != null ? editTitulo.getText().toString().trim() : "";
+        String descricao = editDescricao.getText() != null ? editDescricao.getText().toString().trim() : "";
+        String endereco = editLocal.getText() != null ? editLocal.getText().toString().trim() : "";
 
-        if (titulo.isEmpty() || descricao.isEmpty() || localTexto.isEmpty() || fotoCapturadaBitmap == null) {
-            Toast.makeText(this, "Por favor, preencha todos os campos e adicione uma foto!", Toast.LENGTH_SHORT).show();
+        if (titulo.isEmpty() || descricao.isEmpty() || endereco.isEmpty() || fotoCapturadaBitmap == null) {
+            Toast.makeText(this, "Preencha todos os campos e adicione uma foto.", Toast.LENGTH_SHORT).show();
             return;
         }
 
-        String coordenadas = converterEnderecoParaCoordenadas(localTexto);
+        final android.app.AlertDialog loadingDialog =
+                LoadingUtils.createLoadingDialog(this, "Enviando reporte...");
 
-        if (coordenadas == null) {
-            Toast.makeText(this, "Não conseguimos encontrar esse endereço no mapa. Tente ser mais específico!", Toast.LENGTH_LONG).show();
-            return;
-        }
+        new Thread(() -> {
+            try {
+                Geocoder geocoder = new Geocoder(this, Locale.getDefault());
+                List<Address> addresses = geocoder.getFromLocationName(endereco, 1);
+                if (addresses == null || addresses.isEmpty()) {
+                    runOnUiThread(() -> {
+                        loadingDialog.dismiss();
+                        Toast.makeText(this, "Nao foi possivel localizar esse endereco.", Toast.LENGTH_LONG).show();
+                    });
+                    return;
+                }
 
-        String caminhoDaFotoSalva = salvarImagemNaMemoria(fotoCapturadaBitmap);
-        if (caminhoDaFotoSalva == null) {
-            Toast.makeText(this, "Erro ao guardar a imagem.", Toast.LENGTH_SHORT).show();
-            return;
-        }
-
-        long idSalvo = dbHelper.inserirReporte(titulo, descricao, coordenadas, caminhoDaFotoSalva);
-        if (idSalvo != -1) {
-            Toast.makeText(this, "✅ Caso registrado no mapa!", Toast.LENGTH_LONG).show();
-            finish();
-        } else {
-            Toast.makeText(this, "❌ Erro ao registrar o caso.", Toast.LENGTH_SHORT).show();
-        }
-    }
-
-    private String converterEnderecoParaCoordenadas(String enderecoTexto) {
-        Geocoder geocoder = new Geocoder(this, Locale.getDefault());
-        try {
-            List<Address> addresses = geocoder.getFromLocationName(enderecoTexto, 1);
-            if (addresses != null && !addresses.isEmpty()) {
                 Address local = addresses.get(0);
-                return local.getLatitude() + "," + local.getLongitude();
+                double latitude = local.getLatitude();
+                double longitude = local.getLongitude();
+
+                File fotoTemporaria = salvarImagemTemporaria(fotoCapturadaBitmap);
+                if (fotoTemporaria == null) {
+                    runOnUiThread(() -> {
+                        loadingDialog.dismiss();
+                        Toast.makeText(this, "Erro ao preparar a foto.", Toast.LENGTH_SHORT).show();
+                    });
+                    return;
+                }
+
+                storageService.uploadImage(fotoTemporaria, new SupabaseCallback<String>() {
+                    @Override
+                    public void onSuccess(String fotoUrl) {
+                        reporteService.createReporte(titulo, descricao, endereco, latitude, longitude, fotoUrl, new SupabaseCallback<Void>() {
+                            @Override
+                            public void onSuccess(Void result) {
+                                runOnUiThread(() -> {
+                                    loadingDialog.dismiss();
+                                    Toast.makeText(NovoReporteActivity.this, "Reporte salvo com sucesso.", Toast.LENGTH_LONG).show();
+                                    finish();
+                                });
+                            }
+
+                            @Override
+                            public void onError(String errorMessage) {
+                                runOnUiThread(() -> {
+                                    loadingDialog.dismiss();
+                                    Toast.makeText(NovoReporteActivity.this, errorMessage, Toast.LENGTH_LONG).show();
+                                });
+                            }
+                        });
+                    }
+
+                    @Override
+                    public void onError(String errorMessage) {
+                        runOnUiThread(() -> {
+                            loadingDialog.dismiss();
+                            Toast.makeText(NovoReporteActivity.this, errorMessage, Toast.LENGTH_LONG).show();
+                        });
+                    }
+                });
+            } catch (Exception e) {
+                runOnUiThread(() -> {
+                    loadingDialog.dismiss();
+                    Toast.makeText(this, "Erro ao processar o endereco informado.", Toast.LENGTH_LONG).show();
+                });
             }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        return null;
+        }).start();
     }
 
-    private String salvarImagemNaMemoria(Bitmap bitmap) {
+    private File salvarImagemTemporaria(Bitmap bitmap) {
         try {
-            File diretorio = new File(getFilesDir(), "fotos_reportes");
-            if (!diretorio.exists()) diretorio.mkdirs();
-
-            String nomeArquivo = "reporte_" + System.currentTimeMillis() + ".jpg";
-            File arquivoImagem = new File(diretorio, nomeArquivo);
-
+            File arquivoImagem = new File(getCacheDir(), "reporte_" + System.currentTimeMillis() + ".jpg");
             FileOutputStream fos = new FileOutputStream(arquivoImagem);
             bitmap.compress(Bitmap.CompressFormat.JPEG, 90, fos);
             fos.flush();
             fos.close();
-            return arquivoImagem.getAbsolutePath();
+            return arquivoImagem;
         } catch (Exception e) {
             return null;
         }
@@ -186,9 +217,11 @@ public class NovoReporteActivity extends AppCompatActivity {
                             List<Address> addresses = geocoder.getFromLocation(location.getLatitude(), location.getLongitude(), 1);
                             if (addresses != null && !addresses.isEmpty()) {
                                 editLocal.setText(addresses.get(0).getAddressLine(0));
+                            } else {
+                                editLocal.setText(location.getLatitude() + ", " + location.getLongitude());
                             }
                         } catch (Exception e) {
-                            editLocal.setText(location.getLatitude() + "," + location.getLongitude());
+                            editLocal.setText(location.getLatitude() + ", " + location.getLongitude());
                         }
                     }
                 });

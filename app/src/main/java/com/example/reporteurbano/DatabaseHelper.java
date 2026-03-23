@@ -67,8 +67,17 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                 String descricao = cursor.getString(cursor.getColumnIndexOrThrow(COL_DESCRICAO));
                 String local = cursor.getString(cursor.getColumnIndexOrThrow(COL_LOCAL));
                 String caminhoFoto = cursor.getString(cursor.getColumnIndexOrThrow(COL_CAMINHO_FOTO));
+                double latitude = 0;
+                double longitude = 0;
 
-                lista.add(new Reporte(id, titulo, descricao, local, caminhoFoto));
+                try {
+                    String[] coordenadas = local.split(",");
+                    latitude = Double.parseDouble(coordenadas[0].trim());
+                    longitude = Double.parseDouble(coordenadas[1].trim());
+                } catch (Exception ignored) {
+                }
+
+                lista.add(new Reporte(String.valueOf(id), titulo, descricao, local, latitude, longitude, caminhoFoto));
             } while (cursor.moveToNext());
         }
 

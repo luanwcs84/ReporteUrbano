@@ -4,8 +4,9 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.view.View;
-import android.widget.TextView;
 import android.widget.LinearLayout;
+import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.AppCompatActivity;
@@ -32,10 +33,20 @@ public class HomeActivity extends AppCompatActivity {
     private MaterialToolbar toolbar;
     private FloatingActionButton btnNovoReporte;
     private MapView map;
+    private SessionManager sessionManager;
+    private SupabaseReporteService reporteService;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+        sessionManager = new SessionManager(this);
+        if (!sessionManager.isLoggedIn()) {
+            voltarParaLogin();
+            return;
+        }
+
+        reporteService = new SupabaseReporteService(sessionManager);
 
         Configuration.getInstance().load(this, PreferenceManager.getDefaultSharedPreferences(this));
 
@@ -50,8 +61,7 @@ public class HomeActivity extends AppCompatActivity {
         map = findViewById(R.id.mapView);
         map.setTileSource(TileSourceFactory.MAPNIK);
         map.setMultiTouchControls(true);
-
-        map.getController().setZoom(15.0);
+        map.getController().setZoom(12.0);
         GeoPoint startPoint = new GeoPoint(-3.7319, -38.5267);
         map.getController().setCenter(startPoint);
 
@@ -83,9 +93,12 @@ public class HomeActivity extends AppCompatActivity {
         TextView txtNomeUsuarioNav = headerView.findViewById(R.id.txtNomeUsuarioNav);
         TextView txtLetraAvatarToolbar = findViewById(R.id.txtLetraAvatarToolbar);
 
-        String emailUsuario = getIntent().getStringExtra("USER_EMAIL");
+        String emailUsuario = sessionManager.getUserEmail();
         if (emailUsuario == null || emailUsuario.isEmpty()) {
-            emailUsuario = "admin@gmail.com";
+            emailUsuario = getIntent().getStringExtra("USER_EMAIL");
+        }
+        if (emailUsuario == null || emailUsuario.isEmpty()) {
+            emailUsuario = "usuario@exemplo.com";
         }
 
         String primeiraLetra = emailUsuario.substring(0, 1).toUpperCase();
@@ -100,8 +113,15 @@ public class HomeActivity extends AppCompatActivity {
             if (id == R.id.nav_reportes) {
                 Intent intent = new Intent(HomeActivity.this, MeusReportesActivity.class);
                 startActivity(intent);
+            } else if (id == R.id.nav_sobre) {
+                new androidx.appcompat.app.AlertDialog.Builder(this)
+                        .setTitle("Sobre nos")
+                        .setMessage("ReporteUrbano ajuda usuarios a registrar problemas da cidade com foto e localizacao.")
+                        .setPositiveButton("OK", null)
+                        .show();
             } else if (id == R.id.nav_sair) {
-                finish();
+                sessionManager.clearSession();
+                voltarParaLogin();
             }
             drawerLayout.close();
             return true;
@@ -123,35 +143,47 @@ public class HomeActivity extends AppCompatActivity {
 
     private void atualizarMapaComReportes() {
         LinearLayout layoutEstadoVazio = findViewById(R.id.layoutEstadoVazio);
-        DatabaseHelper dbHelper = new DatabaseHelper(this);
-        List<Reporte> listaReportes = dbHelper.buscarTodosReportes();
 
-        map.getOverlays().clear();
+        reporteService.getMyReportes(new SupabaseCallback<List<Reporte>>() {
+            @Override
+            public void onSuccess(List<Reporte> listaReportes) {
+                runOnUiThread(() -> {
+                    map.getOverlays().clear();
 
-        if (listaReportes.isEmpty()) {
-            map.setVisibility(View.GONE);
-            layoutEstadoVazio.setVisibility(View.VISIBLE);
-        } else {
-            map.setVisibility(View.VISIBLE);
-            layoutEstadoVazio.setVisibility(View.GONE);
+                    if (listaReportes.isEmpty()) {
+                        map.setVisibility(View.GONE);
+                        layoutEstadoVazio.setVisibility(View.VISIBLE);
+                    } else {
+                        map.setVisibility(View.VISIBLE);
+                        layoutEstadoVazio.setVisibility(View.GONE);
 
-            for (Reporte reporte : listaReportes) {
-                try {
-                    String[] coordenadas = reporte.getLocal().split(",");
-                    double lat = Double.parseDouble(coordenadas[0].trim());
-                    double lon = Double.parseDouble(coordenadas[1].trim());
+                        for (Reporte reporte : listaReportes) {
+                            Marker marker = new Marker(map);
+                            marker.setPosition(new GeoPoint(reporte.getLatitude(), reporte.getLongitude()));
+                            marker.setTitle(reporte.getTitulo());
+                            marker.setSnippet(reporte.getDescricao());
+                            marker.setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_BOTTOM);
+                            map.getOverlays().add(marker);
+                        }
 
-                    Marker marker = new Marker(map);
-                    marker.setPosition(new GeoPoint(lat, lon));
-                    marker.setTitle(reporte.getTitulo());
-                    marker.setSnippet(reporte.getDescricao());
-                    marker.setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_BOTTOM);
-
-                    map.getOverlays().add(marker);
-                } catch (Exception e) {
-                }
+                        Reporte primeiroReporte = listaReportes.get(0);
+                        map.getController().animateTo(new GeoPoint(primeiroReporte.getLatitude(), primeiroReporte.getLongitude()));
+                    }
+                    map.invalidate();
+                });
             }
-        }
-        map.invalidate();
+
+            @Override
+            public void onError(String errorMessage) {
+                runOnUiThread(() -> Toast.makeText(HomeActivity.this, errorMessage, Toast.LENGTH_LONG).show());
+            }
+        });
+    }
+
+    private void voltarParaLogin() {
+        Intent intent = new Intent(this, MainActivity.class);
+        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+        startActivity(intent);
+        finish();
     }
 }
