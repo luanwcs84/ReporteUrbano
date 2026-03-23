@@ -42,6 +42,7 @@ dependencies {
     implementation(libs.constraintlayout)
     implementation("com.github.chrisbanes:PhotoView:2.3.0")
     implementation("com.google.android.gms:play-services-location:21.0.1")
+    implementation("org.osmdroid:osmdroid-android:6.1.18")
     testImplementation(libs.junit)
     androidTestImplementation(libs.ext.junit)
     androidTestImplementation(libs.espresso.core)

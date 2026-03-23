@@ -2,8 +2,10 @@ package com.example.reporteurbano;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.preference.PreferenceManager;
 import android.view.View;
 import android.widget.TextView;
+import android.widget.LinearLayout;
 
 import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.AppCompatActivity;
@@ -16,15 +18,27 @@ import com.google.android.material.appbar.MaterialToolbar;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.android.material.navigation.NavigationView;
 
+import org.osmdroid.config.Configuration;
+import org.osmdroid.tileprovider.tilesource.TileSourceFactory;
+import org.osmdroid.util.GeoPoint;
+import org.osmdroid.views.MapView;
+import org.osmdroid.views.overlay.Marker;
+
+import java.util.List;
+
 public class HomeActivity extends AppCompatActivity {
     private DrawerLayout drawerLayout;
     private NavigationView navigationView;
     private MaterialToolbar toolbar;
     private FloatingActionButton btnNovoReporte;
+    private MapView map;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+        Configuration.getInstance().load(this, PreferenceManager.getDefaultSharedPreferences(this));
+
         EdgeToEdge.enable(this);
         setContentView(R.layout.activity_home);
 
@@ -32,6 +46,14 @@ public class HomeActivity extends AppCompatActivity {
         navigationView = findViewById(R.id.nav_view);
         toolbar = findViewById(R.id.toolbarHome);
         btnNovoReporte = findViewById(R.id.btnNovoReporte);
+
+        map = findViewById(R.id.mapView);
+        map.setTileSource(TileSourceFactory.MAPNIK);
+        map.setMultiTouchControls(true);
+
+        map.getController().setZoom(15.0);
+        GeoPoint startPoint = new GeoPoint(-3.7319, -38.5267);
+        map.getController().setCenter(startPoint);
 
         setSupportActionBar(toolbar);
 
@@ -47,6 +69,15 @@ public class HomeActivity extends AppCompatActivity {
             return insets;
         });
 
+        setupUserInterface();
+
+        btnNovoReporte.setOnClickListener(v -> {
+            Intent intent = new Intent(HomeActivity.this, NovoReporteActivity.class);
+            startActivity(intent);
+        });
+    }
+
+    private void setupUserInterface() {
         View headerView = navigationView.getHeaderView(0);
         TextView txtLetraAvatarNav = headerView.findViewById(R.id.txtLetraAvatar);
         TextView txtNomeUsuarioNav = headerView.findViewById(R.id.txtNomeUsuarioNav);
@@ -75,23 +106,52 @@ public class HomeActivity extends AppCompatActivity {
             drawerLayout.close();
             return true;
         });
-
-        btnNovoReporte.setOnClickListener(v -> {
-            Intent intent = new Intent(HomeActivity.this, NovoReporteActivity.class);
-            startActivity(intent);
-        });
     }
 
     @Override
     protected void onResume() {
         super.onResume();
-        android.widget.LinearLayout layoutEstadoVazio = findViewById(R.id.layoutEstadoVazio);
-        DatabaseHelper dbHelper = new DatabaseHelper(this);
+        map.onResume();
+        atualizarMapaComReportes();
+    }
 
-        if (!dbHelper.buscarTodosReportes().isEmpty()) {
-            layoutEstadoVazio.setVisibility(android.view.View.GONE);
+    @Override
+    protected void onPause() {
+        super.onPause();
+        map.onPause();
+    }
+
+    private void atualizarMapaComReportes() {
+        LinearLayout layoutEstadoVazio = findViewById(R.id.layoutEstadoVazio);
+        DatabaseHelper dbHelper = new DatabaseHelper(this);
+        List<Reporte> listaReportes = dbHelper.buscarTodosReportes();
+
+        map.getOverlays().clear();
+
+        if (listaReportes.isEmpty()) {
+            map.setVisibility(View.GONE);
+            layoutEstadoVazio.setVisibility(View.VISIBLE);
         } else {
-            layoutEstadoVazio.setVisibility(android.view.View.VISIBLE);
+            map.setVisibility(View.VISIBLE);
+            layoutEstadoVazio.setVisibility(View.GONE);
+
+            for (Reporte reporte : listaReportes) {
+                try {
+                    String[] coordenadas = reporte.getLocal().split(",");
+                    double lat = Double.parseDouble(coordenadas[0].trim());
+                    double lon = Double.parseDouble(coordenadas[1].trim());
+
+                    Marker marker = new Marker(map);
+                    marker.setPosition(new GeoPoint(lat, lon));
+                    marker.setTitle(reporte.getTitulo());
+                    marker.setSnippet(reporte.getDescricao());
+                    marker.setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_BOTTOM);
+
+                    map.getOverlays().add(marker);
+                } catch (Exception e) {
+                }
+            }
         }
+        map.invalidate();
     }
 }
