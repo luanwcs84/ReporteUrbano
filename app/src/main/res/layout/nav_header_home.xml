@@ -38,4 +38,12 @@
         android:textAppearance="@style/TextAppearance.AppCompat.Body1"
         android:textStyle="bold" />
 
+    <TextView
+        android:id="@+id/txtTipoContaNav"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="4dp"
+        android:text="usuario@exemplo.com"
+        android:textAppearance="@style/TextAppearance.AppCompat.Caption" />
+
 </LinearLayout>

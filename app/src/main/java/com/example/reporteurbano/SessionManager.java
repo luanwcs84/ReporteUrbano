@@ -10,6 +10,8 @@ public class SessionManager {
     private static final String KEY_REFRESH_TOKEN = "refresh_token";
     private static final String KEY_USER_ID = "user_id";
     private static final String KEY_USER_EMAIL = "user_email";
+    private static final String KEY_USER_ROLE = "user_role";
+    private static final String KEY_USER_NAME = "user_name";
 
     private final SharedPreferences preferences;
 
@@ -17,12 +19,14 @@ public class SessionManager {
         this.preferences = context.getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE);
     }
 
-    public void saveSession(String accessToken, String refreshToken, String userId, String userEmail) {
+    public void saveSession(String accessToken, String refreshToken, String userId, String userEmail, String userRole, String userName) {
         preferences.edit()
                 .putString(KEY_ACCESS_TOKEN, accessToken)
                 .putString(KEY_REFRESH_TOKEN, refreshToken)
                 .putString(KEY_USER_ID, userId)
                 .putString(KEY_USER_EMAIL, userEmail)
+                .putString(KEY_USER_ROLE, userRole)
+                .putString(KEY_USER_NAME, userName)
                 .apply();
     }
 
@@ -40,6 +44,18 @@ public class SessionManager {
 
     public String getUserEmail() {
         return preferences.getString(KEY_USER_EMAIL, null);
+    }
+
+    public String getUserRole() {
+        return preferences.getString(KEY_USER_ROLE, "user");
+    }
+
+    public String getUserName() {
+        return preferences.getString(KEY_USER_NAME, null);
+    }
+
+    public boolean isAdmin() {
+        return "admin".equalsIgnoreCase(getUserRole());
     }
 
     public boolean isLoggedIn() {

@@ -1,7 +1,7 @@
 package com.example.reporteurbano;
 
+import android.graphics.Color;
 import android.os.Bundle;
-import android.view.View;
 import android.widget.Toast;
 
 import androidx.activity.EdgeToEdge;
@@ -21,6 +21,7 @@ public class MeusReportesActivity extends AppCompatActivity {
 
     private ReporteAdapter adapter;
     private SupabaseReporteService reporteService;
+    private SessionManager sessionManager;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -28,7 +29,8 @@ public class MeusReportesActivity extends AppCompatActivity {
         EdgeToEdge.enable(this);
         setContentView(R.layout.activity_meus_reportes);
 
-        reporteService = new SupabaseReporteService(new SessionManager(this));
+        sessionManager = new SessionManager(this);
+        reporteService = new SupabaseReporteService(sessionManager);
 
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main), (v, insets) -> {
             Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
@@ -37,6 +39,13 @@ public class MeusReportesActivity extends AppCompatActivity {
         });
 
         MaterialToolbar toolbar = findViewById(R.id.toolbarMeusReportes);
+        toolbar.setTitle(sessionManager.isAdmin() ? "Todos os Reportes" : "Meus Reportes");
+        if (sessionManager.isAdmin()) {
+            int adminPrimary = Color.parseColor("#0F766E");
+            toolbar.setBackgroundColor(adminPrimary);
+            toolbar.setTitleTextColor(Color.WHITE);
+            getWindow().setStatusBarColor(adminPrimary);
+        }
         toolbar.setNavigationOnClickListener(v -> finish());
 
         RecyclerView recycler = findViewById(R.id.recyclerMeusReportes);
@@ -53,7 +62,7 @@ public class MeusReportesActivity extends AppCompatActivity {
     }
 
     private void carregarReportes() {
-        reporteService.getMyReportes(new SupabaseCallback<List<Reporte>>() {
+        reporteService.getVisibleReportes(new SupabaseCallback<List<Reporte>>() {
             @Override
             public void onSuccess(List<Reporte> result) {
                 runOnUiThread(() -> adapter.updateData(result));

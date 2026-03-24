@@ -44,6 +44,7 @@ public class ReporteAdapter extends RecyclerView.Adapter<ReporteAdapter.ReporteV
 
         holder.txtTitulo.setText(reporteAtual.getTitulo());
         holder.txtLocal.setText(reporteAtual.getEndereco());
+        holder.txtAutor.setText("Autor: " + reporteAtual.getAutorNome());
 
         Glide.with(context)
                 .load(reporteAtual.getFotoUrl())
@@ -105,13 +106,14 @@ public class ReporteAdapter extends RecyclerView.Adapter<ReporteAdapter.ReporteV
     }
 
     static class ReporteViewHolder extends RecyclerView.ViewHolder {
-        TextView txtTitulo, txtLocal;
+        TextView txtTitulo, txtLocal, txtAutor;
         ImageView imgFoto, btnDeletar;
 
         public ReporteViewHolder(@NonNull View itemView) {
             super(itemView);
             txtTitulo = itemView.findViewById(R.id.txtItemTitulo);
             txtLocal = itemView.findViewById(R.id.txtItemLocal);
+            txtAutor = itemView.findViewById(R.id.txtItemAutor);
             imgFoto = itemView.findViewById(R.id.imgItemFoto);
             btnDeletar = itemView.findViewById(R.id.btnDeletarItem);
         }

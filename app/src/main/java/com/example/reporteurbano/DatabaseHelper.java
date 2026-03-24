@@ -77,7 +77,17 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                 } catch (Exception ignored) {
                 }
 
-                lista.add(new Reporte(String.valueOf(id), titulo, descricao, local, latitude, longitude, caminhoFoto));
+                lista.add(new Reporte(
+                        String.valueOf(id),
+                        "",
+                        titulo,
+                        descricao,
+                        local,
+                        latitude,
+                        longitude,
+                        caminhoFoto,
+                        ""
+                ));
             } while (cursor.moveToNext());
         }
 

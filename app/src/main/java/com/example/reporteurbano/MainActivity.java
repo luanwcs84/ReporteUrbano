@@ -3,6 +3,7 @@ package com.example.reporteurbano;
 import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
+import android.widget.ScrollView;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -37,7 +38,8 @@ public class MainActivity extends AppCompatActivity {
 
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main), (v, insets) -> {
             Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
-            v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
+            Insets ime = insets.getInsets(WindowInsetsCompat.Type.ime());
+            v.setPadding(systemBars.left, systemBars.top, systemBars.right, Math.max(systemBars.bottom, ime.bottom));
             return insets;
         });
 
@@ -47,53 +49,73 @@ public class MainActivity extends AppCompatActivity {
         final TextInputEditText editSenha = findViewById(R.id.editSenha);
         MaterialButton btnLogin = findViewById(R.id.btnLogin);
         TextView btnIrParaCadastro = findViewById(R.id.txtCadastrar);
+        final ScrollView scrollRoot = findViewById(R.id.main);
 
-        btnIrParaCadastro.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Intent intent = new Intent(MainActivity.this, CadastroActivity.class);
-                startActivity(intent);
-            }
+        layoutEmail.setErrorIconDrawable(null);
+        layoutSenha.setErrorIconDrawable(null);
+        layoutSenha.setEndIconMode(TextInputLayout.END_ICON_PASSWORD_TOGGLE);
+
+        btnIrParaCadastro.setOnClickListener(v -> {
+            Intent intent = new Intent(MainActivity.this, CadastroActivity.class);
+            startActivity(intent);
         });
 
-        btnLogin.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                String email = editEmail.getText().toString().trim();
-                String senha = editSenha.getText().toString().trim();
+        btnLogin.setOnClickListener(v -> {
+            String email = editEmail.getText() != null ? editEmail.getText().toString().trim() : "";
+            String senha = editSenha.getText() != null ? editSenha.getText().toString().trim() : "";
 
-                layoutEmail.setError(null);
-                layoutSenha.setError(null);
+            layoutEmail.setError(null);
+            layoutSenha.setError(null);
+            layoutSenha.setEndIconMode(TextInputLayout.END_ICON_PASSWORD_TOGGLE);
 
-                if (email.isEmpty()) {
-                    layoutEmail.setError("Preencha o e-mail");
-                } else if (senha.isEmpty()) {
-                    layoutSenha.setError("Preencha a senha");
-                } else {
-                    final android.app.AlertDialog loadingDialog =
-                            LoadingUtils.createLoadingDialog(MainActivity.this, "Entrando...");
+            if (email.isEmpty()) {
+                layoutEmail.setError("Preencha o e-mail");
+                focarCampoComTeclado(scrollRoot, editEmail);
+                return;
+            }
 
-                    authService.signIn(email, senha, new SupabaseCallback<AuthUser>() {
-                        @Override
-                        public void onSuccess(AuthUser result) {
-                            runOnUiThread(() -> {
-                                loadingDialog.dismiss();
-                                abrirHome(result.getEmail());
-                            });
-                        }
+            if (senha.isEmpty()) {
+                layoutSenha.setError("Preencha a senha");
+                focarCampoComTeclado(scrollRoot, editSenha);
+                return;
+            }
 
-                        @Override
-                        public void onError(String errorMessage) {
-                            runOnUiThread(() -> {
-                                loadingDialog.dismiss();
-                                layoutEmail.setError(" ");
-                                layoutSenha.setError(errorMessage);
-                                Toast.makeText(MainActivity.this, errorMessage, Toast.LENGTH_LONG).show();
-                            });
-                        }
+            final android.app.AlertDialog loadingDialog =
+                    LoadingUtils.createLoadingDialog(MainActivity.this, "Entrando...");
+
+            authService.signIn(email, senha, new SupabaseCallback<AuthUser>() {
+                @Override
+                public void onSuccess(AuthUser result) {
+                    runOnUiThread(() -> {
+                        loadingDialog.dismiss();
+                        abrirHome(result.getEmail());
                     });
                 }
-            }
+
+                @Override
+                public void onError(String errorMessage) {
+                    runOnUiThread(() -> {
+                        loadingDialog.dismiss();
+                        layoutSenha.setEndIconMode(TextInputLayout.END_ICON_PASSWORD_TOGGLE);
+
+                        if ("Nenhuma conta encontrada para este e-mail.".equals(errorMessage)) {
+                            layoutEmail.setError(errorMessage);
+                            layoutSenha.setError(null);
+                            focarCampoComTeclado(scrollRoot, editEmail);
+                        } else if ("Senha incorreta. Tente novamente.".equals(errorMessage)) {
+                            layoutEmail.setError(null);
+                            layoutSenha.setError(errorMessage);
+                            focarCampoComTeclado(scrollRoot, editSenha);
+                        } else {
+                            layoutEmail.setError(" ");
+                            layoutSenha.setError(errorMessage);
+                            focarCampoComTeclado(scrollRoot, editSenha);
+                        }
+
+                        Toast.makeText(MainActivity.this, errorMessage, Toast.LENGTH_LONG).show();
+                    });
+                }
+            });
         });
     }
 
@@ -102,5 +124,10 @@ public class MainActivity extends AppCompatActivity {
         intent.putExtra("USER_EMAIL", email);
         startActivity(intent);
         finish();
+    }
+
+    private void focarCampoComTeclado(ScrollView scrollRoot, View campo) {
+        campo.requestFocus();
+        scrollRoot.post(() -> scrollRoot.smoothScrollTo(0, Math.max(0, campo.getTop() - 120)));
     }
 }

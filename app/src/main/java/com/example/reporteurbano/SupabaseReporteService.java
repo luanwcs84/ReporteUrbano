@@ -5,7 +5,11 @@ import org.json.JSONObject;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 import okhttp3.HttpUrl;
 import okhttp3.MediaType;
@@ -25,21 +29,24 @@ public class SupabaseReporteService {
         this.sessionManager = sessionManager;
     }
 
-    public void getMyReportes(SupabaseCallback<List<Reporte>> callback) {
+    public void getVisibleReportes(SupabaseCallback<List<Reporte>> callback) {
         String accessToken = sessionManager.getAccessToken();
         if (accessToken == null) {
             callback.onError("Sessão expirada. Faça login novamente.");
             return;
         }
 
-        HttpUrl url = HttpUrl.parse(SupabaseConfig.SUPABASE_URL + "/rest/v1/reportes")
+        HttpUrl.Builder urlBuilder = HttpUrl.parse(SupabaseConfig.SUPABASE_URL + "/rest/v1/reportes")
                 .newBuilder()
                 .addQueryParameter("select", "*")
-                .addQueryParameter("order", "created_at.desc")
-                .build();
+                .addQueryParameter("order", "created_at.desc");
+
+        if (!sessionManager.isAdmin()) {
+            urlBuilder.addQueryParameter("user_id", "eq." + sessionManager.getUserId());
+        }
 
         Request request = new Request.Builder()
-                .url(url)
+                .url(urlBuilder.build())
                 .addHeader("apikey", SupabaseConfig.SUPABASE_ANON_KEY)
                 .addHeader("Authorization", "Bearer " + accessToken)
                 .addHeader("Accept", "application/json")
@@ -62,18 +69,33 @@ public class SupabaseReporteService {
 
                 try {
                     JSONArray array = new JSONArray(responseBody);
-                    List<Reporte> reportes = new ArrayList<>();
+                    List<JSONObject> rawReportes = new ArrayList<>();
+                    Set<String> userIds = new HashSet<>();
 
                     for (int i = 0; i < array.length(); i++) {
                         JSONObject item = array.getJSONObject(i);
+                        rawReportes.add(item);
+                        String userId = item.optString("user_id");
+                        if (!userId.isEmpty()) {
+                            userIds.add(userId);
+                        }
+                    }
+
+                    Map<String, String> autores = buscarAutores(accessToken, userIds);
+                    List<Reporte> reportes = new ArrayList<>();
+
+                    for (JSONObject item : rawReportes) {
+                        String userId = item.optString("user_id");
                         reportes.add(new Reporte(
                                 item.optString("id"),
+                                userId,
                                 item.optString("titulo"),
                                 item.optString("descricao"),
                                 item.optString("endereco"),
                                 item.optDouble("latitude"),
                                 item.optDouble("longitude"),
-                                item.optString("foto_url")
+                                item.optString("foto_url"),
+                                autores.getOrDefault(userId, "Usuário sem identificação")
                         ));
                     }
 
@@ -175,5 +197,87 @@ public class SupabaseReporteService {
                 callback.onSuccess(null);
             }
         });
+    }
+
+    private Map<String, String> buscarAutores(String accessToken, Set<String> userIds) throws IOException {
+        Map<String, String> autores = new HashMap<>();
+        if (userIds.isEmpty()) {
+            return autores;
+        }
+
+        StringBuilder ids = new StringBuilder();
+        for (String userId : userIds) {
+            if (ids.length() > 0) {
+                ids.append(",");
+            }
+            ids.append(userId);
+        }
+
+        HttpUrl url = HttpUrl.parse(SupabaseConfig.SUPABASE_URL + "/rest/v1/profiles")
+                .newBuilder()
+                .addQueryParameter("select", "id,email,nome")
+                .addQueryParameter("id", "in.(" + ids + ")")
+                .build();
+
+        Request request = new Request.Builder()
+                .url(url)
+                .addHeader("apikey", SupabaseConfig.SUPABASE_ANON_KEY)
+                .addHeader("Authorization", "Bearer " + accessToken)
+                .addHeader("Accept", "application/json")
+                .get()
+                .build();
+
+        try (Response response = client.newCall(request).execute()) {
+            String responseBody = response.body() != null ? response.body().string() : "";
+            if (!response.isSuccessful()) {
+                return autores;
+            }
+
+            JSONArray profiles = new JSONArray(responseBody);
+            for (int i = 0; i < profiles.length(); i++) {
+                JSONObject profile = profiles.getJSONObject(i);
+                String nome = profile.optString("nome");
+                if (nome == null || nome.isEmpty()) {
+                    nome = extrairNomeDoEmail(profile.optString("email", ""));
+                }
+                autores.put(profile.optString("id"), nome);
+            }
+        } catch (Exception ignored) {
+        }
+
+        return autores;
+    }
+
+    private String extrairNomeDoEmail(String email) {
+        if (email == null || email.isEmpty()) {
+            return "Usuário sem identificação";
+        }
+
+        String nomeBase = email.split("@")[0]
+                .replace('.', ' ')
+                .replace('_', ' ')
+                .replace('-', ' ')
+                .trim();
+
+        if (nomeBase.isEmpty()) {
+            return "Usuário sem identificação";
+        }
+
+        String[] partes = nomeBase.split("\\s+");
+        StringBuilder nomeFormatado = new StringBuilder();
+        for (String parte : partes) {
+            if (parte.isEmpty()) {
+                continue;
+            }
+            if (nomeFormatado.length() > 0) {
+                nomeFormatado.append(' ');
+            }
+            nomeFormatado.append(Character.toUpperCase(parte.charAt(0)));
+            if (parte.length() > 1) {
+                nomeFormatado.append(parte.substring(1).toLowerCase());
+            }
+        }
+
+        return nomeFormatado.length() > 0 ? nomeFormatado.toString() : "Usuário sem identificação";
     }
 }

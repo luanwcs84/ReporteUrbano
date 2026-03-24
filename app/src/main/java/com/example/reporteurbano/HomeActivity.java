@@ -1,8 +1,11 @@
 package com.example.reporteurbano;
 
 import android.content.Intent;
+import android.content.res.ColorStateList;
+import android.graphics.Color;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
+import android.view.Menu;
 import android.view.View;
 import android.widget.LinearLayout;
 import android.widget.TextView;
@@ -91,20 +94,54 @@ public class HomeActivity extends AppCompatActivity {
         View headerView = navigationView.getHeaderView(0);
         TextView txtLetraAvatarNav = headerView.findViewById(R.id.txtLetraAvatar);
         TextView txtNomeUsuarioNav = headerView.findViewById(R.id.txtNomeUsuarioNav);
+        TextView txtTipoContaNav = headerView.findViewById(R.id.txtTipoContaNav);
         TextView txtLetraAvatarToolbar = findViewById(R.id.txtLetraAvatarToolbar);
+        View viewAvatarBgNav = headerView.findViewById(R.id.viewAvatarBg);
+        View viewAvatarBgToolbar = findViewById(R.id.viewAvatarBgToolbar);
+
+        String nomeUsuario = sessionManager.getUserName();
+        if (nomeUsuario == null || nomeUsuario.isEmpty()) {
+            nomeUsuario = sessionManager.getUserEmail();
+        }
+        if (nomeUsuario == null || nomeUsuario.isEmpty()) {
+            nomeUsuario = getIntent().getStringExtra("USER_EMAIL");
+        }
+        if (nomeUsuario == null || nomeUsuario.isEmpty()) {
+            nomeUsuario = "Usuário";
+        }
 
         String emailUsuario = sessionManager.getUserEmail();
-        if (emailUsuario == null || emailUsuario.isEmpty()) {
-            emailUsuario = getIntent().getStringExtra("USER_EMAIL");
-        }
         if (emailUsuario == null || emailUsuario.isEmpty()) {
             emailUsuario = "usuario@exemplo.com";
         }
 
-        String primeiraLetra = emailUsuario.substring(0, 1).toUpperCase();
+        String primeiraLetra = nomeUsuario.substring(0, 1).toUpperCase();
         txtLetraAvatarNav.setText(primeiraLetra);
-        txtNomeUsuarioNav.setText(emailUsuario);
+        txtNomeUsuarioNav.setText(nomeUsuario);
+        txtTipoContaNav.setText(sessionManager.isAdmin() ? "Administrador" : emailUsuario);
         txtLetraAvatarToolbar.setText(primeiraLetra);
+
+        Menu menu = navigationView.getMenu();
+        menu.findItem(R.id.nav_reportes).setTitle(sessionManager.isAdmin() ? "Todos os Reportes" : "Meus Reportes");
+
+        if (sessionManager.isAdmin()) {
+            int adminPrimary = Color.parseColor("#0F766E");
+            int adminAccent = Color.parseColor("#F59E0B");
+            toolbar.setBackgroundColor(adminPrimary);
+            toolbar.setTitleTextColor(Color.WHITE);
+            toolbar.setSubtitle("Modo administrador");
+            toolbar.setSubtitleTextColor(Color.WHITE);
+            getWindow().setStatusBarColor(adminPrimary);
+            headerView.setBackgroundColor(adminPrimary);
+            btnNovoReporte.setBackgroundTintList(ColorStateList.valueOf(adminAccent));
+            viewAvatarBgNav.setBackgroundTintList(ColorStateList.valueOf(adminAccent));
+            viewAvatarBgToolbar.setBackgroundTintList(ColorStateList.valueOf(adminAccent));
+        } else {
+            int avatarColor = Color.parseColor("#009688");
+            toolbar.setSubtitle(null);
+            viewAvatarBgNav.setBackgroundTintList(ColorStateList.valueOf(avatarColor));
+            viewAvatarBgToolbar.setBackgroundTintList(ColorStateList.valueOf(avatarColor));
+        }
 
         toolbar.setNavigationOnClickListener(v -> drawerLayout.open());
 
@@ -115,8 +152,8 @@ public class HomeActivity extends AppCompatActivity {
                 startActivity(intent);
             } else if (id == R.id.nav_sobre) {
                 new androidx.appcompat.app.AlertDialog.Builder(this)
-                        .setTitle("Sobre nos")
-                        .setMessage("ReporteUrbano ajuda usuarios a registrar problemas da cidade com foto e localizacao.")
+                        .setTitle("Sobre nós")
+                        .setMessage("O ReporteUrbano ajuda os usuários a registrar problemas da cidade com foto e localização.")
                         .setPositiveButton("OK", null)
                         .show();
             } else if (id == R.id.nav_sair) {
@@ -144,7 +181,7 @@ public class HomeActivity extends AppCompatActivity {
     private void atualizarMapaComReportes() {
         LinearLayout layoutEstadoVazio = findViewById(R.id.layoutEstadoVazio);
 
-        reporteService.getMyReportes(new SupabaseCallback<List<Reporte>>() {
+        reporteService.getVisibleReportes(new SupabaseCallback<List<Reporte>>() {
             @Override
             public void onSuccess(List<Reporte> listaReportes) {
                 runOnUiThread(() -> {

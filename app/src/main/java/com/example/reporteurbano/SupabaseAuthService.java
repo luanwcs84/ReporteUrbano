@@ -9,7 +9,6 @@ import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.RequestBody;
 import okhttp3.Response;
-import okhttp3.ResponseBody;
 
 public class SupabaseAuthService {
 
@@ -17,14 +16,16 @@ public class SupabaseAuthService {
 
     private final OkHttpClient client = new OkHttpClient();
     private final SessionManager sessionManager;
+    private final SupabaseProfileService profileService;
 
     public SupabaseAuthService(SessionManager sessionManager) {
         this.sessionManager = sessionManager;
+        this.profileService = new SupabaseProfileService(sessionManager);
     }
 
-    public void signUp(String email, String password, SupabaseCallback<AuthUser> callback) {
+    public void signUp(String nome, String email, String password, SupabaseCallback<AuthUser> callback) {
         if (!SupabaseConfig.isConfigured()) {
-            callback.onError("Configure a URL e a ANON KEY do Supabase em SupabaseConfig.java.");
+            callback.onError("Configure a URL e a chave publica do Supabase em SupabaseConfig.java.");
             return;
         }
 
@@ -50,7 +51,7 @@ public class SupabaseAuthService {
                 public void onResponse(okhttp3.Call call, Response response) throws IOException {
                     String responseBody = response.body() != null ? response.body().string() : "";
                     if (!response.isSuccessful()) {
-                        callback.onError(parseSupabaseError(responseBody, "Erro ao cadastrar usuário."));
+                        callback.onError(parseSupabaseError(responseBody, "Erro ao cadastrar usuario."));
                         return;
                     }
 
@@ -59,37 +60,43 @@ public class SupabaseAuthService {
                         JSONObject user = json.optJSONObject("user");
                         JSONObject session = json.optJSONObject("session");
 
-                        if (user == null) {
-                            callback.onError("Cadastro realizado, mas a resposta do usuário veio vazia.");
+                        if (user == null || session == null) {
+                            callback.onError("Cadastro realizado, mas a sessao do usuario nao foi retornada.");
                             return;
                         }
 
+                        String accessToken = session.optString("access_token", null);
+                        String refreshToken = session.optString("refresh_token", null);
                         String userId = user.optString("id", "");
                         String userEmail = user.optString("email", email);
 
-                        if (session != null) {
-                            sessionManager.saveSession(
-                                    session.optString("access_token", null),
-                                    session.optString("refresh_token", null),
-                                    userId,
-                                    userEmail
-                            );
-                        }
+                        sessionManager.saveSession(accessToken, refreshToken, userId, userEmail, "user", nome);
 
-                        callback.onSuccess(new AuthUser(userId, userEmail));
+                        profileService.createDefaultProfile(userId, userEmail, nome, new SupabaseCallback<SupabaseProfileService.ProfileData>() {
+                            @Override
+                            public void onSuccess(SupabaseProfileService.ProfileData profileData) {
+                                sessionManager.saveSession(accessToken, refreshToken, userId, userEmail, profileData.getRole(), profileData.getNome());
+                                callback.onSuccess(new AuthUser(userId, userEmail, profileData.getNome()));
+                            }
+
+                            @Override
+                            public void onError(String errorMessage) {
+                                callback.onError(errorMessage);
+                            }
+                        });
                     } catch (Exception e) {
-                        callback.onError("Não foi possível interpretar a resposta do cadastro.");
+                        callback.onError("Nao foi possivel interpretar a resposta do cadastro.");
                     }
                 }
             });
         } catch (Exception e) {
-            callback.onError("Não foi possível montar a requisição de cadastro.");
+            callback.onError("Nao foi possivel montar a requisicao de cadastro.");
         }
     }
 
     public void signIn(String email, String password, SupabaseCallback<AuthUser> callback) {
         if (!SupabaseConfig.isConfigured()) {
-            callback.onError("Configure a URL e a ANON KEY do Supabase em SupabaseConfig.java.");
+            callback.onError("Configure a URL e a chave publica do Supabase em SupabaseConfig.java.");
             return;
         }
 
@@ -115,7 +122,7 @@ public class SupabaseAuthService {
                 public void onResponse(okhttp3.Call call, Response response) throws IOException {
                     String responseBody = response.body() != null ? response.body().string() : "";
                     if (!response.isSuccessful()) {
-                        callback.onError(parseSupabaseError(responseBody, "E-mail ou senha inválidos."));
+                        tratarErroLogin(email, responseBody, callback);
                         return;
                     }
 
@@ -128,15 +135,27 @@ public class SupabaseAuthService {
                         String userId = user.optString("id", "");
                         String userEmail = user.optString("email", email);
 
-                        sessionManager.saveSession(accessToken, refreshToken, userId, userEmail);
-                        callback.onSuccess(new AuthUser(userId, userEmail));
+                        sessionManager.saveSession(accessToken, refreshToken, userId, userEmail, "user", null);
+
+                        profileService.fetchCurrentUserProfile(new SupabaseCallback<SupabaseProfileService.ProfileData>() {
+                            @Override
+                            public void onSuccess(SupabaseProfileService.ProfileData profileData) {
+                                sessionManager.saveSession(accessToken, refreshToken, userId, userEmail, profileData.getRole(), profileData.getNome());
+                                callback.onSuccess(new AuthUser(userId, userEmail, profileData.getNome()));
+                            }
+
+                            @Override
+                            public void onError(String errorMessage) {
+                                callback.onError(errorMessage);
+                            }
+                        });
                     } catch (Exception e) {
-                        callback.onError("Não foi possível interpretar a resposta do login.");
+                        callback.onError("Nao foi possivel interpretar a resposta do login.");
                     }
                 }
             });
         } catch (Exception e) {
-            callback.onError("Não foi possível montar a requisição de login.");
+            callback.onError("Nao foi possivel montar a requisicao de login.");
         }
     }
 
@@ -154,9 +173,84 @@ public class SupabaseAuthService {
             if (message.isEmpty()) {
                 message = json.optString("error_description");
             }
-            return message.isEmpty() ? fallback : message;
+            if (message.isEmpty()) {
+                return fallback;
+            }
+            return traduzirMensagem(message, fallback);
         } catch (Exception e) {
             return fallback;
+        }
+    }
+
+    private String traduzirMensagem(String message, String fallback) {
+        String lowerMessage = message.toLowerCase();
+        if (lowerMessage.contains("user already registered")) {
+            return "Ja existe uma conta cadastrada com este e-mail.";
+        }
+        if (lowerMessage.contains("password should be at least")) {
+            return "A senha deve ter pelo menos 6 caracteres.";
+        }
+        if (lowerMessage.contains("invalid login credentials")) {
+            return "E-mail ou senha invalidos.";
+        }
+        return message.isEmpty() ? fallback : message;
+    }
+
+    private void tratarErroLogin(String email, String responseBody, SupabaseCallback<AuthUser> callback) {
+        String parsedError = parseSupabaseError(responseBody, "Nao foi possivel fazer login.");
+        if (!"E-mail ou senha invalidos.".equals(parsedError)) {
+            callback.onError(parsedError);
+            return;
+        }
+
+        verificarSeEmailExiste(email, new SupabaseCallback<Boolean>() {
+            @Override
+            public void onSuccess(Boolean emailExiste) {
+                if (Boolean.TRUE.equals(emailExiste)) {
+                    callback.onError("Senha incorreta. Tente novamente.");
+                } else {
+                    callback.onError("Nenhuma conta encontrada para este e-mail.");
+                }
+            }
+
+            @Override
+            public void onError(String errorMessage) {
+                callback.onError(parsedError);
+            }
+        });
+    }
+
+    private void verificarSeEmailExiste(String email, SupabaseCallback<Boolean> callback) {
+        try {
+            JSONObject bodyJson = new JSONObject();
+            bodyJson.put("email_input", email);
+
+            Request request = new Request.Builder()
+                    .url(SupabaseConfig.SUPABASE_URL + "/rest/v1/rpc/email_exists_for_login")
+                    .addHeader("apikey", SupabaseConfig.SUPABASE_ANON_KEY)
+                    .addHeader("Content-Type", "application/json")
+                    .addHeader("Accept", "application/json")
+                    .post(RequestBody.create(bodyJson.toString(), JSON))
+                    .build();
+
+            client.newCall(request).enqueue(new okhttp3.Callback() {
+                @Override
+                public void onFailure(okhttp3.Call call, IOException e) {
+                    callback.onError("Nao foi possivel validar o e-mail informado.");
+                }
+
+                @Override
+                public void onResponse(okhttp3.Call call, Response response) throws IOException {
+                    String responseBody = response.body() != null ? response.body().string() : "";
+                    if (!response.isSuccessful()) {
+                        callback.onError(responseBody.isEmpty() ? "Nao foi possivel validar o e-mail informado." : responseBody);
+                        return;
+                    }
+                    callback.onSuccess(Boolean.parseBoolean(responseBody));
+                }
+            });
+        } catch (Exception e) {
+            callback.onError("Nao foi possivel montar a validacao do e-mail.");
         }
     }
 }
