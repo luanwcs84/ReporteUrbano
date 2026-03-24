@@ -36,15 +36,6 @@ O ReporteUrbano foi desenvolvido para facilitar o registro de problemas encontra
 - Gradle
 - Git e GitHub
 
-## Capturas de Tela
-### Home do administrador
-![Home do administrador](docs/images/admin-home.jpeg)
-
-### Lista de todos os reportes
-![Todos os reportes](docs/images/admin-reportes.jpeg)
-
-### Validacao de login
-![Validacao de login](docs/images/login-validacao.jpeg)
 
 ## Estrutura no Supabase
 O projeto utiliza os seguintes recursos no Supabase:
