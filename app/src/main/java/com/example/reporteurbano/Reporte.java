@@ -10,6 +10,8 @@ public class Reporte {
     private final double longitude;
     private final String fotoUrl;
     private final String autorNome;
+    private final String autorEmail;
+    private final String createdAt;
 
     public Reporte(String id,
                    String userId,
@@ -19,7 +21,9 @@ public class Reporte {
                    double latitude,
                    double longitude,
                    String fotoUrl,
-                   String autorNome) {
+                   String autorNome,
+                   String autorEmail,
+                   String createdAt) {
         this.id = id;
         this.userId = userId;
         this.titulo = titulo;
@@ -29,6 +33,8 @@ public class Reporte {
         this.longitude = longitude;
         this.fotoUrl = fotoUrl;
         this.autorNome = autorNome;
+        this.autorEmail = autorEmail;
+        this.createdAt = createdAt;
     }
 
     public String getId() { return id; }
@@ -40,4 +46,6 @@ public class Reporte {
     public double getLongitude() { return longitude; }
     public String getFotoUrl() { return fotoUrl; }
     public String getAutorNome() { return autorNome; }
+    public String getAutorEmail() { return autorEmail; }
+    public String getCreatedAt() { return createdAt; }
 }

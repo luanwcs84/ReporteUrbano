@@ -32,7 +32,7 @@ public class SupabaseReporteService {
     public void getVisibleReportes(SupabaseCallback<List<Reporte>> callback) {
         String accessToken = sessionManager.getAccessToken();
         if (accessToken == null) {
-            callback.onError("Sessão expirada. Faça login novamente.");
+            callback.onError("Sessao expirada. Faca login novamente.");
             return;
         }
 
@@ -81,11 +81,12 @@ public class SupabaseReporteService {
                         }
                     }
 
-                    Map<String, String> autores = buscarAutores(accessToken, userIds);
+                    Map<String, AutorInfo> autores = buscarAutores(accessToken, userIds);
                     List<Reporte> reportes = new ArrayList<>();
 
                     for (JSONObject item : rawReportes) {
                         String userId = item.optString("user_id");
+                        AutorInfo autor = autores.getOrDefault(userId, AutorInfo.desconhecido());
                         reportes.add(new Reporte(
                                 item.optString("id"),
                                 userId,
@@ -95,13 +96,15 @@ public class SupabaseReporteService {
                                 item.optDouble("latitude"),
                                 item.optDouble("longitude"),
                                 item.optString("foto_url"),
-                                autores.getOrDefault(userId, "Usuário sem identificação")
+                                autor.getNome(),
+                                autor.getEmail(),
+                                item.optString("created_at")
                         ));
                     }
 
                     callback.onSuccess(reportes);
                 } catch (Exception e) {
-                    callback.onError("Não foi possível interpretar a lista de reportes.");
+                    callback.onError("Nao foi possivel interpretar a lista de reportes.");
                 }
             }
         });
@@ -118,7 +121,7 @@ public class SupabaseReporteService {
         String userId = sessionManager.getUserId();
 
         if (accessToken == null || userId == null) {
-            callback.onError("Sessão expirada. Faça login novamente.");
+            callback.onError("Sessao expirada. Faca login novamente.");
             return;
         }
 
@@ -158,14 +161,14 @@ public class SupabaseReporteService {
                 }
             });
         } catch (Exception e) {
-            callback.onError("Não foi possível montar o reporte para envio.");
+            callback.onError("Nao foi possivel montar o reporte para envio.");
         }
     }
 
     public void deleteReporte(String reporteId, SupabaseCallback<Void> callback) {
         String accessToken = sessionManager.getAccessToken();
         if (accessToken == null) {
-            callback.onError("Sessão expirada. Faça login novamente.");
+            callback.onError("Sessao expirada. Faca login novamente.");
             return;
         }
 
@@ -199,8 +202,8 @@ public class SupabaseReporteService {
         });
     }
 
-    private Map<String, String> buscarAutores(String accessToken, Set<String> userIds) throws IOException {
-        Map<String, String> autores = new HashMap<>();
+    private Map<String, AutorInfo> buscarAutores(String accessToken, Set<String> userIds) throws IOException {
+        Map<String, AutorInfo> autores = new HashMap<>();
         if (userIds.isEmpty()) {
             return autores;
         }
@@ -236,11 +239,12 @@ public class SupabaseReporteService {
             JSONArray profiles = new JSONArray(responseBody);
             for (int i = 0; i < profiles.length(); i++) {
                 JSONObject profile = profiles.getJSONObject(i);
+                String email = profile.optString("email", "");
                 String nome = profile.optString("nome");
                 if (nome == null || nome.isEmpty()) {
-                    nome = extrairNomeDoEmail(profile.optString("email", ""));
+                    nome = extrairNomeDoEmail(email);
                 }
-                autores.put(profile.optString("id"), nome);
+                autores.put(profile.optString("id"), new AutorInfo(nome, email));
             }
         } catch (Exception ignored) {
         }
@@ -250,7 +254,7 @@ public class SupabaseReporteService {
 
     private String extrairNomeDoEmail(String email) {
         if (email == null || email.isEmpty()) {
-            return "Usuário sem identificação";
+            return "Usuario sem identificacao";
         }
 
         String nomeBase = email.split("@")[0]
@@ -260,7 +264,7 @@ public class SupabaseReporteService {
                 .trim();
 
         if (nomeBase.isEmpty()) {
-            return "Usuário sem identificação";
+            return "Usuario sem identificacao";
         }
 
         String[] partes = nomeBase.split("\\s+");
@@ -278,6 +282,28 @@ public class SupabaseReporteService {
             }
         }
 
-        return nomeFormatado.length() > 0 ? nomeFormatado.toString() : "Usuário sem identificação";
+        return nomeFormatado.length() > 0 ? nomeFormatado.toString() : "Usuario sem identificacao";
+    }
+
+    private static class AutorInfo {
+        private final String nome;
+        private final String email;
+
+        private AutorInfo(String nome, String email) {
+            this.nome = nome;
+            this.email = email;
+        }
+
+        public String getNome() {
+            return nome;
+        }
+
+        public String getEmail() {
+            return email == null || email.isEmpty() ? "E-mail nao informado" : email;
+        }
+
+        public static AutorInfo desconhecido() {
+            return new AutorInfo("Usuario sem identificacao", "E-mail nao informado");
+        }
     }
 }

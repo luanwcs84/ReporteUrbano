@@ -60,30 +60,26 @@ public class SupabaseAuthService {
                         JSONObject user = json.optJSONObject("user");
                         JSONObject session = json.optJSONObject("session");
 
-                        if (user == null || session == null) {
-                            callback.onError("Cadastro realizado, mas a sessao do usuario nao foi retornada.");
+                        if (user == null) {
+                            callback.onError("Nao foi possivel interpretar a resposta do cadastro.");
+                            return;
+                        }
+
+                        String userId = user.optString("id", "");
+                        String userEmail = user.optString("email", email);
+
+                        // Quando a confirmacao de e-mail esta ativa no Supabase, o cadastro pode
+                        // ser criado com sucesso sem retornar uma sessao imediatamente.
+                        if (session == null) {
+                            callback.onSuccess(new AuthUser(userId, userEmail, nome));
                             return;
                         }
 
                         String accessToken = session.optString("access_token", null);
                         String refreshToken = session.optString("refresh_token", null);
-                        String userId = user.optString("id", "");
-                        String userEmail = user.optString("email", email);
 
                         sessionManager.saveSession(accessToken, refreshToken, userId, userEmail, "user", nome);
-
-                        profileService.createDefaultProfile(userId, userEmail, nome, new SupabaseCallback<SupabaseProfileService.ProfileData>() {
-                            @Override
-                            public void onSuccess(SupabaseProfileService.ProfileData profileData) {
-                                sessionManager.saveSession(accessToken, refreshToken, userId, userEmail, profileData.getRole(), profileData.getNome());
-                                callback.onSuccess(new AuthUser(userId, userEmail, profileData.getNome()));
-                            }
-
-                            @Override
-                            public void onError(String errorMessage) {
-                                callback.onError(errorMessage);
-                            }
-                        });
+                        callback.onSuccess(new AuthUser(userId, userEmail, nome));
                     } catch (Exception e) {
                         callback.onError("Nao foi possivel interpretar a resposta do cadastro.");
                     }
