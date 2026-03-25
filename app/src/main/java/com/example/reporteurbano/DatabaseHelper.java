@@ -86,6 +86,8 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                         latitude,
                         longitude,
                         caminhoFoto,
+                        "",
+                        "",
                         ""
                 ));
             } while (cursor.moveToNext());

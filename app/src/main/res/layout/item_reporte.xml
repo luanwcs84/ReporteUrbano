@@ -68,6 +68,36 @@
             app:layout_constraintStart_toEndOf="@id/imgItemFoto"
             app:layout_constraintTop_toBottomOf="@id/txtItemLocal" />
 
+        <TextView
+            android:id="@+id/txtItemEmailAutor"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="16dp"
+            android:layout_marginTop="6dp"
+            android:layout_marginEnd="12dp"
+            android:maxLines="1"
+            android:text="E-mail: usuario@exemplo.com"
+            android:textColor="@android:color/darker_gray"
+            android:textSize="13sp"
+            app:layout_constraintEnd_toStartOf="@id/btnDeletarItem"
+            app:layout_constraintStart_toEndOf="@id/imgItemFoto"
+            app:layout_constraintTop_toBottomOf="@id/txtItemAutor" />
+
+        <TextView
+            android:id="@+id/txtItemData"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="16dp"
+            android:layout_marginTop="6dp"
+            android:layout_marginEnd="12dp"
+            android:maxLines="1"
+            android:text="Data: 24/03/2026 às 18:20"
+            android:textColor="@android:color/darker_gray"
+            android:textSize="13sp"
+            app:layout_constraintEnd_toStartOf="@id/btnDeletarItem"
+            app:layout_constraintStart_toEndOf="@id/imgItemFoto"
+            app:layout_constraintTop_toBottomOf="@id/txtItemEmailAutor" />
+
         <ImageView
             android:id="@+id/btnDeletarItem"
             android:layout_width="40dp"

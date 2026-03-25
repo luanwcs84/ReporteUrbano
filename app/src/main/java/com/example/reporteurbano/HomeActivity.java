@@ -198,7 +198,13 @@ public class HomeActivity extends AppCompatActivity {
                             Marker marker = new Marker(map);
                             marker.setPosition(new GeoPoint(reporte.getLatitude(), reporte.getLongitude()));
                             marker.setTitle(reporte.getTitulo());
-                            marker.setSnippet(reporte.getDescricao());
+                            marker.setSnippet(
+                                    "Autor: " + reporte.getAutorNome()
+                                            + "\n"
+                                            + "Endereço: " + reporte.getEndereco()
+                                            + "\n"
+                                            + "Descrição: " + reporte.getDescricao()
+                            );
                             marker.setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_BOTTOM);
                             map.getOverlays().add(marker);
                         }
