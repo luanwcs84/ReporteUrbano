@@ -60,7 +60,7 @@ Os objetivos técnicos centrais do projeto são:
 | Supabase Auth | Cadastro, login e gerenciamento de sessões |
 | Supabase Database (PostgreSQL) | Armazenamento de reportes e perfis de usuários |
 | Supabase Storage | Upload e acesso às fotos dos reportes |
-| Supabase Row Level Security (RLS) | Políticas de acesso por perfil (user / admin) |
+| Supabase Row Level Security (RLS) | Políticas de acesso por perfil (`user` / `admin`) |
 
 ---
 
@@ -110,15 +110,15 @@ ReporteUrbano/
 
 - **Cadastro e Login** — criação de conta com e-mail e senha via Supabase Auth
 - **Captura de Foto** — integração com a câmera nativa do dispositivo no momento do registro
-- **Captura de Localização** — obtenção das coordenadas GPS em tempo real
+- **Captura de Localização** — utilização da localização atual do dispositivo para auxiliar no preenchimento do endereço
 - **Criar Reporte** — envio de título, descrição, endereço, foto e localização para o banco de dados
 - **Visualizar no Mapa** — exibição dos próprios reportes como pinos georreferenciados
-- **Excluir Reporte** — remoção de reportes próprios da plataforma
+- **Excluir Reporte** — remoção dos próprios reportes da plataforma
 
 ### Painel do Administrador
 
 - **Modo Administrador** — acesso ao perfil com papel (`role`) diferenciado no banco de dados
-- **Todos os Reportes** — visualização e gerenciamento dos reportes de todos os usuários
+- **Todos os Reportes** — visualização de todos os reportes cadastrados
 - **Mapa Global** — exibição de todos os pinos registrados na cidade
 
 ---
@@ -143,8 +143,8 @@ O projeto utiliza os seguintes recursos no Supabase:
 
 - Tabela `profiles`
 - Tabela `reportes`
-- Bucket de storage `reportes-fotos`
-- Policies de Row Level Security para usuário comum e administrador
+- Bucket `reportes-fotos` no Supabase Storage
+- Policies de Row Level Security (RLS) para usuário comum e administrador
 
 **Campos da tabela `profiles`:**
 
@@ -160,14 +160,14 @@ O projeto utiliza os seguintes recursos no Supabase:
 | Campo | Tipo | Descrição |
 |---|---|---|
 | `id` | UUID | Identificador único |
-| `user_id` | UUID | Referência ao autor |
+| `user_id` | UUID | Referência ao autor do reporte |
 | `titulo` | TEXT | Título do problema |
-| `descricao` | TEXT | Descrição detalhada |
-| `endereco` | TEXT | Endereço aproximado |
-| `latitude` | FLOAT8 | Coordenada geográfica |
-| `longitude` | FLOAT8 | Coordenada geográfica |
-| `foto_url` | TEXT | URL pública da foto no Storage |
-| `created_at` | TIMESTAMPTZ | Data e hora do registro |
+| `descricao` | TEXT | Descrição detalhada da ocorrência |
+| `endereco` | TEXT | Endereço aproximado do problema |
+| `latitude` | DOUBLE PRECISION | Latitude da ocorrência |
+| `longitude` | DOUBLE PRECISION | Longitude da ocorrência |
+| `foto_url` | TEXT | URL da imagem armazenada no bucket |
+| `created_at` | TIMESTAMP | Data de criação do reporte |
 
 ### 6.2 Arquivo de Configuração do App
 
@@ -188,9 +188,9 @@ public class SupabaseConfig {
 ```
 
 > **⚠️ Importante:**
-> - Use **somente** a `anon` / `publishable key` do seu projeto
+> - Use **somente** a `anon key` / `publishable key` do seu projeto
 > - **Nunca** utilize a `secret key` ou a chave `service_role`
-> - **Nunca** versione este arquivo com credenciais reais — adicione ao `.gitignore`
+> - **Nunca** publique credenciais reais no repositório, mantenha apenas valores de exemplo no arquivo versionado e configure localmente as credenciais do seu projeto
 
 ---
 
