@@ -1,0 +1,117 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.cardview.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_margin="12dp"
+    app:cardCornerRadius="16dp"
+    app:cardElevation="4dp">
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:padding="12dp">
+
+        <ImageView
+            android:id="@+id/imgItemFoto"
+            android:layout_width="84dp"
+            android:layout_height="84dp"
+            android:background="#DDDDDD"
+            android:scaleType="centerCrop"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            tools:srcCompat="@drawable/ic_logo_app" />
+
+        <TextView
+            android:id="@+id/txtItemTitulo"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="16dp"
+            android:layout_marginEnd="12dp"
+            android:text="Título do reporte"
+            android:textColor="@android:color/black"
+            android:textSize="18sp"
+            android:textStyle="bold"
+            app:layout_constraintEnd_toStartOf="@id/btnDeletarItem"
+            app:layout_constraintStart_toEndOf="@id/imgItemFoto"
+            app:layout_constraintTop_toTopOf="@id/imgItemFoto" />
+
+        <TextView
+            android:id="@+id/txtItemLocal"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="16dp"
+            android:layout_marginTop="6dp"
+            android:layout_marginEnd="12dp"
+            android:maxLines="2"
+            android:text="Endereço do problema..."
+            android:textColor="@android:color/darker_gray"
+            android:textSize="14sp"
+            app:layout_constraintEnd_toStartOf="@id/btnDeletarItem"
+            app:layout_constraintStart_toEndOf="@id/imgItemFoto"
+            app:layout_constraintTop_toBottomOf="@id/txtItemTitulo" />
+
+        <TextView
+            android:id="@+id/txtItemAutor"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="16dp"
+            android:layout_marginTop="8dp"
+            android:layout_marginEnd="12dp"
+            android:maxLines="1"
+            android:text="Autor: Usuário"
+            android:textColor="@android:color/darker_gray"
+            android:textSize="14sp"
+            app:layout_constraintEnd_toStartOf="@id/btnDeletarItem"
+            app:layout_constraintStart_toEndOf="@id/imgItemFoto"
+            app:layout_constraintTop_toBottomOf="@id/txtItemLocal" />
+
+        <TextView
+            android:id="@+id/txtItemEmailAutor"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="16dp"
+            android:layout_marginTop="6dp"
+            android:layout_marginEnd="12dp"
+            android:maxLines="1"
+            android:text="E-mail: usuario@exemplo.com"
+            android:textColor="@android:color/darker_gray"
+            android:textSize="13sp"
+            app:layout_constraintEnd_toStartOf="@id/btnDeletarItem"
+            app:layout_constraintStart_toEndOf="@id/imgItemFoto"
+            app:layout_constraintTop_toBottomOf="@id/txtItemAutor" />
+
+        <TextView
+            android:id="@+id/txtItemData"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="16dp"
+            android:layout_marginTop="6dp"
+            android:layout_marginEnd="12dp"
+            android:maxLines="1"
+            android:text="Data: 24/03/2026 às 18:20"
+            android:textColor="@android:color/darker_gray"
+            android:textSize="13sp"
+            app:layout_constraintEnd_toStartOf="@id/btnDeletarItem"
+            app:layout_constraintStart_toEndOf="@id/imgItemFoto"
+            app:layout_constraintTop_toBottomOf="@id/txtItemEmailAutor" />
+
+        <ImageView
+            android:id="@+id/btnDeletarItem"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:layout_marginTop="8dp"
+            android:layout_marginEnd="4dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:contentDescription="Excluir reporte"
+            android:padding="8dp"
+            android:src="@android:drawable/ic_menu_delete"
+            android:tint="#E57373"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="@id/txtItemTitulo" />
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+</androidx.cardview.widget.CardView>
