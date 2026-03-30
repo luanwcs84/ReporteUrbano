@@ -1,4 +1,4 @@
-﻿# 📍 Reporte Urbano
+# 📍 Reporte Urbano
 
 > Aplicativo Android para registro e visualização de problemas urbanos pelos cidadãos.
 
@@ -18,26 +18,25 @@
 6. [Configuração do Supabase](#6-configuração-do-supabase)
 7. [Instalação](#7-instalação)
 8. [Execução Local](#8-execução-local)
-9. [Usuários de Teste](#9-usuários-de-teste)
-10. [Testes e Qualidade](#10-testes-e-qualidade)
-11. [Deploy / Geração do APK](#11-deploy--geração-do-apk)
-12. [Documentação e Evidências](#12-documentação-e-evidências)
-13. [Colaboração](#13-colaboração)
-14. [Copyright](#14-copyright)
+9. [Testes e Qualidade](#9-testes-e-qualidade)
+10. [Deploy / Geração do APK](#10-deploy--geração-do-apk)
+11. [Documentação e Evidências](#11-documentação-e-evidências)
+12. [Equipe e Repositório](#12-equipe-e-repositório)
+13. [Licença](#13-licença)
 
 ---
 
 ## 1. Objetivo
 
-O **Reporte Urbano** é um trabalho acadêmico desenvolvido para a disciplina **Desenvolvimento para Plataformas Móveis (N700)**. O projeto tem como foco o desenvolvimento de uma aplicação nativa Android que permite a cidadãos registrar problemas urbanos — como buracos, iluminação defeituosa, descarte irregular de lixo e outros — com foto capturada na hora e localização GPS precisa.
+O **Reporte Urbano** é um trabalho acadêmico desenvolvido para a disciplina **Desenvolvimento para Plataformas Móveis (N700)**. O projeto tem como foco o desenvolvimento de uma aplicação nativa Android que permite a cidadãos registrar problemas urbanos, como buracos, iluminação defeituosa, descarte irregular de lixo e outros, com foto e localização do dispositivo.
 
 Os objetivos técnicos centrais do projeto são:
 
-- Praticar desenvolvimento nativo Android com **Java** e **Android SDK**
-- Utilizar **sensores reais do dispositivo**: câmera e GPS
-- Aplicar os princípios de **Material Design** na interface do usuário
-- Integrar um backend completo via **Supabase** (autenticação, banco de dados e armazenamento de arquivos)
-- Exibir os reportes em um **mapa interativo** com pinos georreferenciados
+- praticar desenvolvimento nativo Android com **Java** e **Android SDK**;
+- utilizar recursos reais do dispositivo, como **câmera** e **localização**;
+- aplicar princípios de **Material Design** na interface;
+- integrar autenticação, banco de dados e armazenamento de arquivos com **Supabase**;
+- exibir os reportes em um **mapa interativo** com pinos georreferenciados.
 
 ---
 
@@ -48,10 +47,10 @@ Os objetivos técnicos centrais do projeto são:
 | Tecnologia | Função |
 |---|---|
 | Java | Linguagem principal de desenvolvimento |
-| Android SDK | APIs nativas de câmera, GPS, ciclo de vida |
-| XML (Layouts) | Definição de interfaces de usuário |
-| Material Design 3 | Componentes visuais e diretrizes de UX |
-| osmdroid | Biblioteca de mapas interativos (OpenStreetMap) |
+| Android SDK | APIs nativas de câmera, localização e ciclo de vida |
+| XML (Layouts) | Definição das interfaces de usuário |
+| Material Design | Componentes visuais e diretrizes de UX |
+| osmdroid | Biblioteca de mapas interativos baseada em OpenStreetMap |
 
 ### Back-end as a Service (BaaS)
 
@@ -66,41 +65,42 @@ Os objetivos técnicos centrais do projeto são:
 
 ## 3. Estrutura do Projeto
 
-```
+```text
 ReporteUrbano/
 ├── app/
 │   ├── src/
 │   │   └── main/
 │   │       ├── java/com/example/reporteurbano/
-│   │       │   ├── SupabaseConfig.java           # Credenciais do Supabase (não versionar)
-│   │       │   ├── MainActivity.java              # Tela de login (entry point do app)
-│   │       │   ├── CadastroActivity.java          # Tela de criação de conta
-│   │       │   ├── HomeActivity.java              # Mapa interativo e pinos (usuário logado)
-│   │       │   ├── NovoReporteActivity.java       # Registro de novo reporte (foto + GPS)
-│   │       │   ├── MeusReportesActivity.java      # Lista dos reportes do usuário
-│   │       │   ├── AuthUser.java                  # Modelo de usuário autenticado
-│   │       │   ├── Reporte.java                   # Modelo de dados do reporte
-│   │       │   ├── ReporteAdapter.java            # Adapter RecyclerView de reportes
-│   │       │   ├── SessionManager.java            # Gerenciamento de sessão local
-│   │       │   ├── SupabaseAuthService.java       # Serviço de autenticação
-│   │       │   ├── SupabaseReporteService.java    # Serviço de CRUD de reportes
-│   │       │   ├── SupabaseStorageService.java    # Serviço de upload de fotos
-│   │       │   ├── SupabaseProfileService.java    # Serviço de perfis de usuários
-│   │       │   ├── SupabaseCallback.java          # Interface de callbacks assíncronos
-│   │       │   ├── DatabaseHelper.java            # Auxiliar de banco de dados local
-│   │       │   └── LoadingUtils.java              # Utilitário de diálogos de carregamento
+│   │       │   ├── SupabaseConfig.java
+│   │       │   ├── MainActivity.java
+│   │       │   ├── CadastroActivity.java
+│   │       │   ├── HomeActivity.java
+│   │       │   ├── NovoReporteActivity.java
+│   │       │   ├── MeusReportesActivity.java
+│   │       │   ├── AuthUser.java
+│   │       │   ├── Reporte.java
+│   │       │   ├── ReporteAdapter.java
+│   │       │   ├── SessionManager.java
+│   │       │   ├── SupabaseAuthService.java
+│   │       │   ├── SupabaseReporteService.java
+│   │       │   ├── SupabaseStorageService.java
+│   │       │   ├── SupabaseProfileService.java
+│   │       │   ├── SupabaseCallback.java
+│   │       │   ├── DatabaseHelper.java
+│   │       │   └── LoadingUtils.java
 │   │       ├── res/
-│   │       │   ├── layout/                    # Arquivos XML de interface
-│   │       │   ├── drawable/                  # Ícones e recursos visuais
-│   │       │   └── values/                    # Cores, strings, temas
+│   │       │   ├── layout/
+│   │       │   ├── drawable/
+│   │       │   └── values/
 │   │       └── AndroidManifest.xml
-│   └── build.gradle
-├── build.gradle
+│   └── build.gradle.kts
+├── gradle/
+├── build.gradle.kts
 ├── gradle.properties
 └── README.md
 ```
 
-> **⚠️ Atenção:** O arquivo `SupabaseConfig.java` contém credenciais sensíveis e **não deve ser versionado**. Adicione-o ao `.gitignore`.
+> **Atenção:** as credenciais reais do Supabase não ficam no código-fonte versionado. O projeto lê esses dados do arquivo `local.properties`, que é local e ignorado pelo Git.
 
 ---
 
@@ -110,7 +110,7 @@ ReporteUrbano/
 
 - **Cadastro e Login** — criação de conta com e-mail e senha via Supabase Auth
 - **Captura de Foto** — integração com a câmera nativa do dispositivo no momento do registro
-- **Captura de Localização** — utilização da localização atual do dispositivo para auxiliar no preenchimento do endereço
+- **Uso da Localização** — utilização da localização atual do dispositivo para auxiliar no preenchimento do endereço
 - **Criar Reporte** — envio de título, descrição, endereço, foto e localização para o banco de dados
 - **Visualizar no Mapa** — exibição dos próprios reportes como pinos georreferenciados
 - **Excluir Reporte** — remoção dos próprios reportes da plataforma
@@ -127,11 +127,11 @@ ReporteUrbano/
 
 Antes de configurar o projeto, certifique-se de ter instalado:
 
-- **Android Studio** Hedgehog (2025.3.2) ou superior
-- **JDK 11** ou superior
-- **Android SDK** com API Level mínimo 26 (Android 8.0) e target API 36
-- **Conta no Supabase** — [supabase.com](https://supabase.com)
-- **Dispositivo físico ou emulador** com suporte a câmera e GPS (recomendado: dispositivo real para testar sensores)
+- **Android Studio** compatível com o projeto;
+- **JDK 11** ou superior;
+- **Android SDK** com API mínima 26;
+- **Conta no Supabase** — [supabase.com](https://supabase.com/);
+- **Dispositivo físico ou emulador** para execução do app.
 
 ---
 
@@ -141,10 +141,10 @@ Antes de configurar o projeto, certifique-se de ter instalado:
 
 O projeto utiliza os seguintes recursos no Supabase:
 
-- Tabela `profiles`
-- Tabela `reportes`
-- Bucket `reportes-fotos` no Supabase Storage
-- Policies de Row Level Security (RLS) para usuário comum e administrador
+- tabela `profiles`;
+- tabela `reportes`;
+- bucket `reportes-fotos` no Supabase Storage;
+- policies de Row Level Security (RLS) para usuário comum e administrador.
 
 **Campos da tabela `profiles`:**
 
@@ -169,28 +169,28 @@ O projeto utiliza os seguintes recursos no Supabase:
 | `foto_url` | TEXT | URL da imagem armazenada no bucket |
 | `created_at` | TIMESTAMP | Data de criação do reporte |
 
-### 6.2 Arquivo de Configuração do App
+### 6.2 Configuração Local do App
 
-Cada integrante deve configurar manualmente o arquivo abaixo **antes de compilar o projeto**:
+Para executar o projeto, é necessário configurar manualmente o arquivo `local.properties`, na raiz do projeto, **antes de compilar e executar a aplicação**.
 
-```
-app/src/main/java/com/example/reporteurbano/SupabaseConfig.java
-```
+Além do caminho do Android SDK, o arquivo deve conter:
 
-Preencha com as credenciais do seu projeto no Supabase:
-
-```java
-public class SupabaseConfig {
-    public static final String SUPABASE_URL    = "https://seu-projeto.supabase.co";
-    public static final String SUPABASE_ANON_KEY = "sua_publishable_key_aqui";
-    public static final String STORAGE_BUCKET  = "reportes-fotos";
-}
+```properties
+sdk.dir=C\:\\Users\\SEU_USUARIO\\AppData\\Local\\Android\\Sdk
+supabase.url=https://seu-projeto.supabase.co
+supabase.anon.key=sua_publishable_key_aqui
+supabase.storage.bucket=reportes-fotos
 ```
 
-> **⚠️ Importante:**
-> - Use **somente** a `anon key` / `publishable key` do seu projeto
-> - **Nunca** utilize a `secret key` ou a chave `service_role`
-> - **Nunca** publique credenciais reais no repositório, mantenha apenas valores de exemplo no arquivo versionado e configure localmente as credenciais do seu projeto
+O aplicativo lê esses valores localmente durante o build, sem expor credenciais reais no código versionado.
+
+Se o arquivo ainda não existir, crie um `local.properties` na raiz do projeto e inclua também o caminho do Android SDK.
+
+> **Importante:**
+> - Use somente a `anon key` / `publishable key` do projeto
+> - Nunca utilize a `secret key` ou a chave `service_role`
+> - O arquivo `local.properties` não sobe para o Git
+> - As credenciais do projeto devem ser configuradas localmente antes da execução
 
 ---
 
@@ -201,12 +201,12 @@ public class SupabaseConfig {
 git clone https://github.com/luanwcs84/ReporteUrbano.git
 
 # 2. Abra o projeto no Android Studio
-#    File → Open → selecione a pasta ReporteUrbano/
+#    File -> Open -> selecione a pasta ReporteUrbano/
 
-# 3. Configure o arquivo SupabaseConfig.java com suas credenciais (ver seção 6)
+# 3. Configure o arquivo local.properties com suas credenciais (ver seção 6)
 
 # 4. Sincronize as dependências do Gradle
-#    No Android Studio: File → Sync Project with Gradle Files
+#    No Android Studio: File -> Sync Project with Gradle Files
 ```
 
 ---
@@ -215,51 +215,27 @@ git clone https://github.com/luanwcs84/ReporteUrbano.git
 
 ### Via Android Studio
 
-1. Conecte um dispositivo Android via USB com **Depuração USB** habilitada, ou inicie um emulador com câmera e GPS configurados
-2. Selecione o dispositivo no seletor de dispositivos do Android Studio
-3. Clique em **▶ Run** (Shift + F10)
-4. O app será compilado e instalado automaticamente
+1. Conecte um dispositivo Android via USB com **Depuração USB** habilitada, ou inicie um emulador.
+2. Selecione o dispositivo no seletor de dispositivos do Android Studio.
+3. Clique em **Run**.
+4. O app será compilado e instalado automaticamente.
 
-> **Dica:** Para testar GPS em emulador, utilize o painel de controle de localização virtual do Android Studio (Extended Controls → Location).
-
----
-
-## 9. Usuários de Teste
-
-Os seguintes usuários já estão cadastrados no ambiente de testes e podem ser utilizados para validação das funcionalidades:
-
-### Administrador
-
-| Campo | Valor |
-|---|---|
-| **E-mail** | `adminreporteurbano@gmail.com` |
-| **Senha** | `urbrepadmin` |
-| **Papel** | Administrador (acesso a todos os reportes) |
-
-### Usuários Comuns
-
-| E-mail | Senha |
-|---|---|
-| `pedro@gmail.com` | `123456` |
-| `dianadasilva@gmail.com` | `123456` |
-| `murilo@gmail.com` | `123456` |
-
-> **ℹ️ Nota:** As senhas acima são exclusivas para o ambiente de teste acadêmico. Não reutilize essas credenciais em sistemas de produção.
+> **Dica:** para testar localização em emulador, utilize o painel de localização virtual do Android Studio.
 
 ---
 
-## 10. Testes e Qualidade
+## 9. Testes e Qualidade
 
 ### Testes Funcionais (Manuais)
 
-Os seguintes fluxos foram validados manualmente no dispositivo físico e no emulador:
+Os seguintes fluxos foram validados manualmente:
 
 | Fluxo | Status |
 |---|---|
 | Cadastro de novo usuário | ✅ Validado |
 | Login com usuário existente | ✅ Validado |
 | Captura de foto pela câmera | ✅ Validado |
-| Obtenção de coordenadas GPS | ✅ Validado |
+| Obtenção da localização | ✅ Validado |
 | Criação de novo reporte | ✅ Validado |
 | Exibição de pinos no mapa | ✅ Validado |
 | Exclusão de reporte próprio | ✅ Validado |
@@ -268,45 +244,47 @@ Os seguintes fluxos foram validados manualmente no dispositivo físico e no emul
 
 ### Boas Práticas Adotadas
 
-- Verificação de permissões em tempo de execução para câmera (`CAMERA`) e localização (`ACCESS_FINE_LOCATION`)
-- Tratamento de erros nas chamadas à API do Supabase (callbacks de erro e feedback visual ao usuário)
-- Uso de `AsyncTask` / threads em background para operações de rede, evitando bloqueio da UI
-- Validação de campos obrigatórios antes do envio de formulários
+- verificação de permissões em tempo de execução para localização (`ACCESS_FINE_LOCATION`);
+- tratamento de erros nas chamadas à API do Supabase;
+- uso de operações assíncronas e threads em background para chamadas de rede;
+- validação de campos obrigatórios antes do envio de formulários.
 
 ---
 
-## 11. Deploy / Geração do APK
+## 10. Deploy / Geração do APK
 
-### APK de Debug (Desenvolvimento)
+### APK de Debug
 
 ```bash
 ./gradlew assembleDebug
 ```
 
 O arquivo gerado estará em:
-```
+
+```text
 app/build/outputs/apk/debug/app-debug.apk
 ```
 
-### APK de Release (Distribuição)
+### APK de Release
 
-1. No Android Studio, acesse: **Build → Generate Signed Bundle / APK**
-2. Selecione **APK**
-3. Crie ou selecione um **Keystore** existente
-4. Preencha as informações de assinatura
-5. Selecione o build variant **release**
-6. Clique em **Finish**
+1. No Android Studio, acesse **Build -> Generate Signed Bundle / APK**.
+2. Selecione **APK**.
+3. Crie ou selecione um **Keystore**.
+4. Preencha as informações de assinatura.
+5. Selecione o build variant **release**.
+6. Clique em **Finish**.
 
 O APK assinado estará em:
-```
+
+```text
 app/build/outputs/apk/release/app-release.apk
 ```
 
-> **ℹ️ Nota:** Para publicação na Google Play Store, o formato recomendado é o **Android App Bundle (`.aab`)**, gerado via `./gradlew bundleRelease`.
+> Para publicação na Google Play Store, o formato recomendado é o **Android App Bundle (`.aab`)**.
 
 ---
 
-## 12. Documentação e Evidências
+## 11. Documentação e Evidências
 
 ### Capturas de Tela
 
@@ -316,7 +294,7 @@ app/build/outputs/apk/release/app-release.apk
 | Mapa Interativo | Exibição dos pinos de reportes no modo administrador |
 | Menu Lateral | Painel de navegação com opções de perfil e acesso a reportes |
 
-> As imagens de evidência do funcionamento do app estão disponíveis na pasta `/docs/screenshots/` do repositório.
+As imagens de evidência do funcionamento do app estão disponíveis na pasta `/docs/images/` do repositório.
 
 ### Repositório
 
@@ -330,7 +308,7 @@ app/build/outputs/apk/release/app-release.apk
 
 ---
 
-## 13. Colaboração
+## 12. Equipe e Repositório
 
 ### Equipe — Grupo 16
 
@@ -343,24 +321,17 @@ app/build/outputs/apk/release/app-release.apk
 | Larissa Fernandes | [@larissa-fernandess](https://github.com/larissa-fernandess) |
 | Anderson Ferreira | [@pherreiras](https://github.com/pherreiras) |
 
-### Fluxo de Trabalho
+### Repositório
 
-- **Versionamento:** Git com repositório centralizado no GitHub
-- **Branches:** Os integrantes trabalharam nas branches de (`develop`), (`mapa`) e (`guimass`) com merge via Pull Request para a branch `main`
-- **Commits:** Convenção de commits semânticos (`feat:`, `fix:`, `docs:`, `refactor:`, etc.)
-- **Comunicação:** WhatsApp para alinhamentos rápidos e reuniões síncronas semanais para revisão do progresso
+- **GitHub:** [luanwcs84/ReporteUrbano](https://github.com/luanwcs84/ReporteUrbano)
+- **Versionamento:** Git
+- **Fluxo de integração:** Pull Requests
 
 ---
 
-## 14. Licença
+## 13. Licença
 
 Este projeto é desenvolvido para fins **acadêmicos** no âmbito da disciplina N700 — Desenvolvimento para Plataformas Móveis.
-
-```
-
-Copyright (c) 2026 Grupo 16 — Reporte Urbano
-
-```
 
 ---
 
